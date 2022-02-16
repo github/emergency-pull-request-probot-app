@@ -1,0 +1,28 @@
+{
+  "name": "@probot/example-aws-lambda-serverless",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Probot & AWS Lambda example",
+  "main": "app.js",
+  "scripts": {
+    "start": "probot run ./app.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "@probot/adapter-aws-lambda-serverless": "^2.0.0"
+  },
+  "repository": "github:probot/example-aws-lambda-serverless",
+  "keywords": [],
+  "author": "Gregor Martynus (https://twitter.com/gr2m)",
+  "license": "ISC",
+  "devDependencies": {
+    "nock": "^13.0.7",
+    "smee-client": "^1.2.2",
+    "uvu": "^0.5.1"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
+  }
+}

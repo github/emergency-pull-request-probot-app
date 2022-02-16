@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless GitHub app
+
+Parameters:
+  githubAppId:
+    Description: The App ID of your GitHub app
+    Type: String
+  githubWebhookSecret:
+    Description: The webhook secret of your GitHub app
+    Type: String
+  githubPrivateKey:
+    Description: The private key of your GitHub app
+    Type: String
+
+Resources:
+  webhooks:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-webhooks
+      Description: Basic Auth Funtion
+      CodeUri: .
+      Handler: handler.webhooks
+      Runtime: nodejs14.x
+      MemorySize: 256
+      Timeout: 20
+      Events:
+        ApiEvent:
+          Type: HttpApi
+      Environment:
+        Variables:
+          APP_ID: !Ref githubAppId
+          WEBHOOK_SECRET: !Ref githubWebhookSecret
+          PRIVATE_KEY: !Ref githubPrivateKey

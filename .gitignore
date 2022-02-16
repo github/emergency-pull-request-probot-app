@@ -1,0 +1,10 @@
+# package directories
+node_modules
+
+# aws sam stuff
+.aws-sam
+samconfig.toml
+vars.json
+.env
+coverage
+.nyc_output
