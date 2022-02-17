@@ -24,6 +24,10 @@ Get the following details about your GitHub app:
 - `WEBHOOK_SECRET`
 - `PRIVATE_KEY`
 
+You will also need a user and PAT with admin permissions on the repos in order to merge bypassing checks and required approvals. These will be supplied to the app as the following env vars:
+- GITHUB_USER
+- GITHUB_PAT
+
 1. Setup your aws cli creds
 1. set your aws profile by running `export AWS_PROFILE=<profile>`
 1. run `sam build`
