@@ -12,6 +12,12 @@ Parameters:
   githubPrivateKey:
     Description: The private key of your GitHub app
     Type: String
+  githubUser:
+    Description: The user with admin access
+    Type: String
+  githubPat:
+    Description: The PAT of the user with admin access
+    Type: String
 
 Resources:
   webhooks:
@@ -32,3 +38,5 @@ Resources:
           APP_ID: !Ref githubAppId
           WEBHOOK_SECRET: !Ref githubWebhookSecret
           PRIVATE_KEY: !Ref githubPrivateKey
+          GITHUB_USER: !Ref githubUser
+          GITHUB_PAT: !Ref githubPat
