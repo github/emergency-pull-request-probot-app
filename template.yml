@@ -18,6 +18,12 @@ Parameters:
   githubPat:
     Description: The PAT of the user with admin access
     Type: String
+  emergencyLabel:
+    Description: The label to use for emergency issues
+    Type: String
+  reviewBody:
+    Description: The body of the review comment
+    Type: String
 
 Resources:
   webhooks:
@@ -40,3 +46,5 @@ Resources:
           PRIVATE_KEY: !Ref githubPrivateKey
           GITHUB_USER: !Ref githubUser
           GITHUB_PAT: !Ref githubPat
+          EMERGENCY_LABEL: !Ref emergencyLabel
+          REVIEW_BODY: !Ref reviewBody

@@ -25,8 +25,12 @@ Get the following details about your GitHub app:
 - `PRIVATE_KEY`
 
 You will also need a user and PAT with admin permissions on the repos in order to merge bypassing checks and required approvals. These will be supplied to the app as the following env vars:
-- GITHUB_USER
-- GITHUB_PAT
+- `GITHUB_USER`
+- `GITHUB_PAT`
+
+You will need to decide the label that this app looks for and the contents of the review:
+- `EMERGENCY_LABEL`
+- `REVIEW_BODY`
 
 1. Setup your aws cli creds
 1. set your aws profile by running `export AWS_PROFILE=<profile>`
