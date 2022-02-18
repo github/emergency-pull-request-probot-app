@@ -13,16 +13,30 @@ module.exports = (app) => {
   app.log("Yay! The app was loaded!");
 
   app.on("pull_request.labeled", async (context) => {
-    if (context.payload.label.name == emergencyLabel) {
-      app.log("Emergency label detected");
-      context.octokit.pulls.createReview(
-        context.pullRequest({ event: "APPROVE", body: reviewBody })
-      );
-      return axios({
-        method: 'put',
-        url: `${context.payload.pull_request.url}/merge`,
-        auth: auth
-      });
+    if (context.payload.label.name == "emergency") {
+      app.log(`${emergencyLabel} label detected`);
+      axios({
+        method: 'post',
+        url: `${context.payload.pull_request.url}/reviews`,
+        auth: auth,
+        data: {"event":"APPROVE"}
+      })
+        //  .then(function (response) {
+        //    let reviewId = response.data.id;
+        //    axios({
+        //      method: 'post',
+        //      url: `${context.payload.pull_request.url}/reviews/${reviewId}/events`,
+        //      auth: auth,
+        //      body: {
+        //        event: "APPROVE"
+        //      }
+        //    })
+        //  });
+      // return axios({
+      //   method: 'put',
+      //   url: `${context.payload.pull_request.url}/merge`,
+      //   auth: auth
+      // });
     }
   });
 };
