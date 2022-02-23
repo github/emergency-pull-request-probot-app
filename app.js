@@ -14,12 +14,20 @@ module.exports = (app) => {
 
   app.on("pull_request.labeled", async (context) => {
     if (context.payload.label.name == "emergency") {
+      let reviewBody = `Pull request ${context.payload.pull_request.html_url} was labeled as an emergency.
+- [ ] Reviewed`;
       app.log(`${emergencyLabel} label detected`);
       axios({
         method: 'post',
         url: `${context.payload.pull_request.url}/reviews`,
         auth: auth,
         data: {"event":"APPROVE"}
+      })
+      axios({
+        method: 'post',
+        url: `${context.payload.repository.url}/issues`,
+        auth: auth,
+        data: {"title":"Emergency PR Audit","body":reviewBody}
       })
       return axios({
         method: 'put',
