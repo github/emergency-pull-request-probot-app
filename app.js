@@ -21,22 +21,11 @@ module.exports = (app) => {
         auth: auth,
         data: {"event":"APPROVE"}
       })
-        //  .then(function (response) {
-        //    let reviewId = response.data.id;
-        //    axios({
-        //      method: 'post',
-        //      url: `${context.payload.pull_request.url}/reviews/${reviewId}/events`,
-        //      auth: auth,
-        //      body: {
-        //        event: "APPROVE"
-        //      }
-        //    })
-        //  });
-      // return axios({
-      //   method: 'put',
-      //   url: `${context.payload.pull_request.url}/merge`,
-      //   auth: auth
-      // });
+      return axios({
+        method: 'put',
+        url: `${context.payload.pull_request.url}/merge`,
+        auth: auth
+      });
     }
   });
 };
