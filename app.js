@@ -13,11 +13,14 @@ module.exports = (app) => {
   app.log("Yay! The app was loaded!");
 
   app.on("pull_request.labeled", async (context) => {
-    if (context.payload.label.name == emergencyLabel) {
-      app.log("Emergency label detected");
-      context.octokit.pulls.createReview(
-        context.pullRequest({ event: "APPROVE", body: reviewBody })
-      );
+    if (context.payload.label.name == "emergency") {
+      app.log(`${emergencyLabel} label detected`);
+      axios({
+        method: 'post',
+        url: `${context.payload.pull_request.url}/reviews`,
+        auth: auth,
+        data: {"event":"APPROVE"}
+      })
       return axios({
         method: 'put',
         url: `${context.payload.pull_request.url}/merge`,
