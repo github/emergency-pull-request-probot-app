@@ -1,4 +1,5 @@
 const axios = require('axios');
+const fs = require('fs')
 const emergencyLabel = process.env.EMERGENCY_LABEL;
 const reviewBody = process.env.REVIEW_BODY;
 const auth = {
@@ -14,26 +15,35 @@ module.exports = (app) => {
 
   app.on("pull_request.labeled", async (context) => {
     if (context.payload.label.name == "emergency") {
-      let reviewBody = `Pull request ${context.payload.pull_request.html_url} was labeled as an emergency.
-- [ ] Reviewed`;
       app.log(`${emergencyLabel} label detected`);
-      axios({
-        method: 'post',
-        url: `${context.payload.pull_request.url}/reviews`,
-        auth: auth,
-        data: {"event":"APPROVE"}
-      })
-      axios({
-        method: 'post',
-        url: `${context.payload.repository.url}/issues`,
-        auth: auth,
-        data: {"title":"Emergency PR Audit","body":reviewBody}
-      })
-      return axios({
-        method: 'put',
-        url: `${context.payload.pull_request.url}/merge`,
-        auth: auth
-      });
+      if (process.env.APPROVE_PR == 'true') {
+        app.log(`Adding review to PR`);
+        axios({
+          method: 'post',
+          url: `${context.payload.pull_request.url}/reviews`,
+          auth: auth,
+          data: { "event": "APPROVE" }
+        })
+      }
+      if (process.env.CREATE_ISSUE == 'true') {
+        app.log(`Creating issue`);
+        let issueBody = fs.readFileSync(process.env.ISSUE_BODY_FILE, 'utf8');
+        issueBody = issueBody.replace('#',context.payload.pull_request.html_url)
+        axios({
+          method: 'post',
+          url: `${context.payload.repository.url}/issues`,
+          auth: auth,
+          data: { "title": process.env.ISSUE_TITLE, "body": issueBody }
+        })
+      }
+      if (process.env.MERGE_PR == 'true') {
+        app.log(`Merging PR`);
+        return axios({
+          method: 'put',
+          url: `${context.payload.pull_request.url}/merge`,
+          auth: auth
+        });
+      }
     }
   });
 };
