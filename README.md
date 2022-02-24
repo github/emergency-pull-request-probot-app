@@ -1,6 +1,6 @@
 # Emergency PR GitHub App
 
-This repository is a probot app to [AWS Lambda](https://aws.amazon.com/lambda/) using [aws sam](https://aws.amazon.com/serverless/sam/).
+This repository is a probot app deploying to [AWS Lambda](https://aws.amazon.com/lambda/) using [aws sam](https://aws.amazon.com/serverless/sam/).
 
 The app listens for [Pull Request events](https://docs.github.com/en/developers/webhooks-and-events/events/github-event-types#pullrequestevent) where action=`labeled` and can do 3 things:
 1. Approve an emergency PR
