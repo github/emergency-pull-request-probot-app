@@ -1,7 +1,6 @@
 const axios = require('axios');
 const fs = require('fs')
 const emergencyLabel = process.env.EMERGENCY_LABEL;
-const reviewBody = process.env.REVIEW_BODY;
 const auth = {
   username: process.env.GITHUB_USER,
   password: process.env.GITHUB_PAT
@@ -33,7 +32,7 @@ module.exports = (app) => {
           method: 'post',
           url: `${context.payload.repository.url}/issues`,
           auth: auth,
-          data: { "title": process.env.ISSUE_TITLE, "body": issueBody }
+          data: { "title": process.env.ISSUE_TITLE, "body": issueBody, "labels": [emergencyLabel] }
         })
       }
       if (process.env.MERGE_PR == 'true') {
