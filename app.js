@@ -38,8 +38,10 @@ module.exports = (app) => {
           auth: auth,
           data: { 
             "title": process.env.ISSUE_TITLE,
-            "body": issueBody, "labels": [emergencyLabel]},
+            "body": issueBody,
+            "labels": [emergencyLabel],
             ...assignees
+          }
         })
       }
       if (process.env.MERGE_PR == 'true') {
