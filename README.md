@@ -38,10 +38,11 @@ You will also need a user and PAT with admin permissions on the repos in order t
 - `GITHUB_USER`
 - `GITHUB_PAT`
 
-You will need to decide the label that this app looks for and the contents of the review:
+You will need to decide the label that this app looks for, the contents of the issue, and the assignee of the issue:
 - `EMERGENCY_LABEL`
 - `ISSUE_TITLE`
 - `ISSUE_BODY_FILE`
+- `ISSUE_ASSIGNEE`
 
 1. Setup your aws cli creds
 1. set your aws profile by running `export AWS_PROFILE=<profile>`
