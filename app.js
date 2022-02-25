@@ -26,13 +26,20 @@ module.exports = (app) => {
       }
       if (process.env.CREATE_ISSUE == 'true') {
         app.log(`Creating issue`);
+        let assignees = {};
+        if (typeof process.env.ISSUE_ASSIGNEE !== 'undefined' && process.env.ISSUE_ASSIGNEE != "") {
+          assignees = {"assignees": [process.env.ISSUE_ASSIGNEE]};
+        }
         let issueBody = fs.readFileSync(process.env.ISSUE_BODY_FILE, 'utf8');
         issueBody = issueBody.replace('#',context.payload.pull_request.html_url)
         axios({
           method: 'post',
           url: `${context.payload.repository.url}/issues`,
           auth: auth,
-          data: { "title": process.env.ISSUE_TITLE, "body": issueBody, "labels": [emergencyLabel] }
+          data: { 
+            "title": process.env.ISSUE_TITLE,
+            "body": issueBody, "labels": [emergencyLabel]},
+            ...assignees
         })
       }
       if (process.env.MERGE_PR == 'true') {
