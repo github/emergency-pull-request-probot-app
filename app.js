@@ -17,12 +17,14 @@ module.exports = (app) => {
       app.log(`${emergencyLabel} label detected`);
       if (process.env.APPROVE_PR == 'true') {
         app.log(`Adding review to PR`);
-        axios({
+        await axios({
           method: 'post',
           url: `${context.payload.pull_request.url}/reviews`,
           auth: auth,
           data: { "event": "APPROVE" }
-        })
+        }).then(response => {
+          app.log(`Review added`)
+        });
       }
       if (process.env.CREATE_ISSUE == 'true') {
         app.log(`Creating issue`);
@@ -33,7 +35,7 @@ module.exports = (app) => {
         }
         let issueBody = fs.readFileSync(process.env.ISSUE_BODY_FILE, 'utf8');
         issueBody = issueBody.replace('#',context.payload.pull_request.html_url)
-        axios({
+        await axios({
           method: 'post',
           url: `${context.payload.repository.url}/issues`,
           auth: auth,
@@ -43,7 +45,9 @@ module.exports = (app) => {
             "labels": [emergencyLabel],
             ...assignees
           }
-        })
+        }).then(response => {
+          app.log(`Issue created`)
+        });
       }
       if (process.env.MERGE_PR == 'true') {
         app.log(`Merging PR`);
