@@ -13,8 +13,11 @@ module.exports = (app) => {
   const emergencyLabel = process.env.EMERGENCY_LABEL;
 
   app.on("pull_request.labeled", async (context) => {
+    let errorsArray = [];
     if (context.payload.label.name == "emergency") {
       app.log(`${emergencyLabel} label detected`);
+
+      // Approve PR
       if (process.env.APPROVE_PR == 'true') {
         app.log(`Adding review to PR`);
         await axios({
@@ -24,8 +27,13 @@ module.exports = (app) => {
           data: { "event": "APPROVE" }
         }).then(response => {
           app.log(`Review added`)
+        }).catch(error => {
+          app.log(`Error adding review: ${error}`)
+          errorsArray.push(error);
         });
       }
+
+      // Create issue
       if (process.env.CREATE_ISSUE == 'true') {
         app.log(`Creating issue`);
         let assignees = {};
@@ -47,15 +55,31 @@ module.exports = (app) => {
           }
         }).then(response => {
           app.log(`Issue created`)
+        }).catch(error => {
+          app.log(`Error creating issue: ${error}`)
+          errorsArray.push(error);
         });
       }
+
+      // Merge PR
       if (process.env.MERGE_PR == 'true') {
         app.log(`Merging PR`);
-        return axios({
+        await axios({
           method: 'put',
           url: `${context.payload.pull_request.url}/merge`,
           auth: auth
+        }).then(response => {
+          app.log(`PR merged`)
+        }).catch(error => {
+          app.log(`Error merging PR: ${error}`)
+          errorsArray.push(error);
         });
+      }
+      if (errorsArray.length > 0) {
+        app.log(`Errors: ${errorsArray}`);
+        throw errorsArray;
+      } else {
+        return true;
       }
     }
   });
