@@ -29,32 +29,38 @@ test.before.each(() => {
   probot.load(app);
 });
 
-test("recieves issues.opened event", async function () {
+test("recieves pull_request.labeled event", async function () {
   const mock = nock("https://api.github.com")
     // create new check run
     .post(
-      "/repos/probot/example-aws-lambda-serverless/issues/1/comments",
+      "/repos/robandpdx/superbigmono/pulls/1/reviews",
       (requestBody) => {
-        assert.equal(requestBody, { body: "Hello, World!" });
+        assert.equal(requestBody, { event: "APPROVE" });
 
         return true;
       }
     )
-    .reply(201, {});
+    .reply(200);
 
   await probot.receive({
-    name: "issues",
+    name: "pull_request",
     id: "1",
     payload: {
-      action: "opened",
+      action: "labeled",
+      label: {
+        name: "emergency"
+      },
       repository: {
         owner: {
           login: "probot",
         },
-        name: "example-aws-lambda-serverless",
+        name: "superbigmono",
+        url: "https://api.github.com/repos/robandpdx/superbigmono"
       },
-      issue: {
+      pull_request: {
         number: 1,
+        url: "https://api.github.com/repos/robandpdx/superbigmono/pulls/1",
+        html_url: "https://github.com/robandpdx/superbigmono/pull/1"
       },
     },
   });
