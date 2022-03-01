@@ -30,16 +30,37 @@ test.before.each(() => {
 });
 
 test("recieves pull_request.labeled event", async function () {
+
+  process.env.APP_ID = '999999'
+  process.env.WEBHOOK_SECRET = 'fakesecret'
+  process.env.PRIVATE_KEY = "fakeprivatekey"
+  process.env.GITHUB_PAT = 'fakepat'
+  process.env.GITHUB_USER = 'fake_user'
+  process.env.APPROVE_PR = 'true'
+  process.env.CREATE_ISSUE = 'true'
+  process.env.MERGE_PR = 'true'
+  process.env.ISSUE_TITLE = 'Emergency PR Audit'
+  process.env.ISSUE_BODY_FILE = 'issueBody.md'
+  process.env.ISSUE_ASSIGNEES = 'tonyclifton,andykaufman'
+  process.env.EMERGENCY_LABEL = 'emergency'
+
   const mock = nock("https://api.github.com")
     // create new check run
     .post(
-      "/repos/robandpdx/superbigmono/pulls/1/reviews",
-      (requestBody) => {
-        assert.equal(requestBody, { event: "APPROVE" });
-
-        return true;
-      }
+      "/repos/robandpdx/superbigmono/pulls/1/reviews"
     )
+    .reply(200);
+
+  mock.post("/repos/robandpdx/superbigmono/issues"
+  )
+    .reply(200);
+
+  mock.put("/repos/robandpdx/superbigmono/pulls/1/merge",
+    (requestBody) => {
+      //console.log(requestBody);
+      return true;
+    }
+  )
     .reply(200);
 
   await probot.receive({
@@ -65,7 +86,7 @@ test("recieves pull_request.labeled event", async function () {
     },
   });
 
-  assert.equal(mock.activeMocks(), []);
+  assert.equal(mock.pendingMocks(), []);
 });
 
 test.run();
