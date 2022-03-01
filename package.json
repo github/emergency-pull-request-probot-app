@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@probot/adapter-aws-lambda-serverless": "^2.0.0",
+    "probot": "^11.0.1",
     "axios": "^0.26.0"
   },
   "repository": "github:probot/example-aws-lambda-serverless",

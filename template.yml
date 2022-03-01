@@ -29,6 +29,9 @@ Parameters:
     Description: The file containing the body of the issue
     Default: issueBody.md
     Type: String
+  issueAssignees:
+    Description: The assignees of the issue in a comma separated list
+    Type: String
   approvePr:
     Description: Enable the app to approve PRs
     Default: true
@@ -75,6 +78,12 @@ Resources:
           EMERGENCY_LABEL: !Ref emergencyLabel
           ISSUE_TITLE: !Ref issueTitle
           ISSUE_BODY_FILE: !Ref issueBodyFile
+          ISSUE_ASSIGNEES: !Ref issueAssignees
           APPROVE_PR: !Ref approvePr
           CREATE_ISSUE: !Ref createIssue
           MERGE_PR: !Ref mergePr
+
+Outputs:
+  WebhooksUrl:
+    Description: "Endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"
