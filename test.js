@@ -68,45 +68,93 @@ test.after.each(() => {
   delete process.env.MERGE_PR;
 });
 
-test("recieves pull_request.labeled event, review, issue, merge", async function () {
-    process.env.APPROVE_PR = 'true';
-    process.env.CREATE_ISSUE = 'true';
-    process.env.MERGE_PR = 'true';
-
+test("recieves pull_request.labeled event, approve, create issue, merge", async function () {
+  process.env.APPROVE_PR = 'true';
+  process.env.CREATE_ISSUE = 'true';
+  process.env.MERGE_PR = 'true';
+  
+  // mock the request to add approval to the pr
   const mock = nock("https://api.github.com")
-    // create new check run
     .post(
       "/repos/robandpdx/superbigmono/pulls/1/reviews",
       (requestBody) => {
-        //console.log(requestBody);
-        assert.equal(requestBody.event, "APPROVE");
+        checkApprovalRequest(requestBody);
         return true;
       }
     )
     .reply(200);
-
+  // mock the request to create the an issue
   mock.post("/repos/robandpdx/superbigmono/issues",
     (requestBody) => {
-      assert.equal(requestBody.title, "Emergency PR Audit");
-      assert.equal(requestBody.assignees, ["tonyclifton", "andykaufman"]);
-      assert.equal(requestBody.labels, ["emergency"]);
-      assert.equal(requestBody.body, "Pull request https://github.com/robandpdx/superbigmono/pull/1 was labeled as an emergency.\n- [ ] Reviewed");
+      checkIssueRequest(requestBody);
       return true;
     }
-  )
-    .reply(200);
-
-  mock.put("/repos/robandpdx/superbigmono/pulls/1/merge",
-    (requestBody) => {
-      //console.log(requestBody);
-      return true;
-    }
-  )
-    .reply(200);
+  ).reply(200);
+  // mock the request to merge the pr
+  mock.put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
 
   await probot.receive(payload);
 
   assert.equal(mock.pendingMocks(), []);
 });
+
+test("recieves pull_request.labeled event, create issue, merge", async function () {
+  process.env.APPROVE_PR = 'false';
+  process.env.CREATE_ISSUE = 'true';
+  process.env.MERGE_PR = 'true';
+
+  // mock the request to create the an issue
+  const mock = nock("https://api.github.com")
+    .post("/repos/robandpdx/superbigmono/issues",
+      (requestBody) => {
+        checkIssueRequest(requestBody);
+        return true;
+      }
+    )
+    .reply(200);
+
+  // mock the request to merge the pr
+  mock.put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
+
+  await probot.receive(payload);
+
+  assert.equal(mock.pendingMocks(), []);
+});
+
+test("recieves pull_request.labeled event, approve, merge", async function () {
+  process.env.APPROVE_PR = 'true';
+  process.env.CREATE_ISSUE = 'false';
+  process.env.MERGE_PR = 'true';
+
+  // mock the request to add approval to the pr
+  const mock = nock("https://api.github.com")
+    .post(
+      "/repos/robandpdx/superbigmono/pulls/1/reviews",
+      (requestBody) => {
+        //console.log(requestBody);
+        checkApprovalRequest(requestBody);
+        return true;
+      }
+    )
+    .reply(200);
+
+  // mock the request to merge the pr
+  mock.put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
+
+  await probot.receive(payload);
+
+  assert.equal(mock.pendingMocks(), []);
+});
+
+function checkIssueRequest(requestBody) {
+  assert.equal(requestBody.title, "Emergency PR Audit");
+  assert.equal(requestBody.assignees, ["tonyclifton", "andykaufman"]);
+  assert.equal(requestBody.labels, ["emergency"]);
+  assert.equal(requestBody.body, "Pull request https://github.com/robandpdx/superbigmono/pull/1 was labeled as an emergency.\n- [ ] Reviewed");
+}
+
+function checkApprovalRequest(requestBody) {
+  assert.equal(requestBody.event, "APPROVE");
+}
 
 test.run();
