@@ -62,6 +62,8 @@ Install dependencies
 npm install
 ```
 
+Copy .env-sample to .env and fill in the environment variables as needed. See above.
+
 Start the server
 
 ```
@@ -69,6 +71,35 @@ npm start
 ```
 
 Follow the instructions to register a new GitHub app.
+
+## Docker
+
+```sh
+# 1. Run npm install
+npm install
+
+# 2. Build container
+docker build -t emergency-pull-request .
+
+# 3. Srouce your .env file
+export $(cat .env | xargs)
+
+# 3. Start container
+docker run \
+    -e APP_ID=$APP_ID \
+    -e PRIVATE_KEY=$PRIVATE_KEY \
+    -e WEBHOOK_SECRET=$WEBHOOK_SECRET \
+    -e GITHUB_PAT=$GITHUB_PAT \
+    -e GITHUB_USER=$GITHUB_USER \
+    -e APPROVE_PR=$APPROVE_PR \
+    -e CREATE_ISSUE=$CREATE_ISSUE \
+    -e MERGE_PR=$MERGE_PR \
+    -e ISSUE_TITLE=$ISSUE_TITLE \
+    -e ISSUE_BODY_FILE=$ISSUE_BODY_FILE \
+    -e ISSUE_ASSIGNEES=$ISSUE_ASSIGNEES \
+    -e EMERGENCY_LABEL=$EMERGENCY_LABEL \
+    emergency-pull-request
+```
 
 ## Debugging locally
 There are two options to debug locally.
