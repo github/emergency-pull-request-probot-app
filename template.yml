@@ -82,3 +82,8 @@ Resources:
           APPROVE_PR: !Ref approvePr
           CREATE_ISSUE: !Ref createIssue
           MERGE_PR: !Ref mergePr
+
+Outputs:
+  WebhooksUrl:
+    Description: "Endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"
