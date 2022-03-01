@@ -39,15 +39,16 @@ You will also need a user and PAT with admin permissions on the repos in order t
 - `GITHUB_PAT`
 
 You will need to decide the label that this app looks for, the contents of the issue, and the assignee of the issue:
-- `EMERGENCY_LABEL`
-- `ISSUE_TITLE`
-- `ISSUE_BODY_FILE`
-- `ISSUE_ASSIGNEE`
+- `EMERGENCY_LABEL`  This is the label that indicates an emergency PR
+- `ISSUE_TITLE`  This is the title of the issue created
+- `ISSUE_BODY_FILE`  This is the file containing the body of the issue created
+- `ISSUE_ASSIGNEES`  This is a comma separated list of the issue assignees
 
 1. Setup your aws cli creds
 1. set your aws profile by running `export AWS_PROFILE=<profile>`
 1. run `sam build`
 1. run `sam deploy --guided`
+You will be prompted for inputs names similar to the environment variables above. 
 
 Subsequent deploys to the same stack to the default environment...
 1. run `sam build`

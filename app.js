@@ -27,8 +27,9 @@ module.exports = (app) => {
       if (process.env.CREATE_ISSUE == 'true') {
         app.log(`Creating issue`);
         let assignees = {};
-        if (typeof process.env.ISSUE_ASSIGNEE !== 'undefined' && process.env.ISSUE_ASSIGNEE != "") {
-          assignees = {"assignees": [process.env.ISSUE_ASSIGNEE]};
+        if (typeof process.env.ISSUE_ASSIGNEES !== 'undefined' && process.env.ISSUE_ASSIGNEES != "") {
+          let assigneesArray = process.env.ISSUE_ASSIGNEES.split(",");
+          assignees = {"assignees": assigneesArray.map(s => s.trim())};
         }
         let issueBody = fs.readFileSync(process.env.ISSUE_BODY_FILE, 'utf8');
         issueBody = issueBody.replace('#',context.payload.pull_request.html_url)
