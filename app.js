@@ -1,6 +1,5 @@
 const axios = require('axios');
 const fs = require('fs')
-const emergencyLabel = process.env.EMERGENCY_LABEL;
 const auth = {
   username: process.env.GITHUB_USER,
   password: process.env.GITHUB_PAT
@@ -11,6 +10,7 @@ const auth = {
  */
 module.exports = (app) => {
   app.log("Yay! The app was loaded!");
+  const emergencyLabel = process.env.EMERGENCY_LABEL;
 
   app.on("pull_request.labeled", async (context) => {
     if (context.payload.label.name == "emergency") {

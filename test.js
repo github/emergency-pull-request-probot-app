@@ -15,6 +15,16 @@ const app = require("./app");
 let probot;
 const test = suite("app");
 test.before.each(() => {
+  // set environmet variables used for all tests
+  process.env.APP_ID = '999999';
+  process.env.WEBHOOK_SECRET = 'fakesecret';
+  process.env.PRIVATE_KEY = "fakeprivatekey";
+  process.env.GITHUB_PAT = 'fakepat';
+  process.env.GITHUB_USER = 'fake_user';
+  process.env.ISSUE_TITLE = 'Emergency PR Audit';
+  process.env.ISSUE_BODY_FILE = 'issueBody.md';
+  process.env.ISSUE_ASSIGNEES = 'tonyclifton,andykaufman';
+  process.env.EMERGENCY_LABEL = 'emergency';
   probot = new Probot({
     // simple authentication as alternative to appId/privateKey
     githubToken: "test",
@@ -29,29 +39,37 @@ test.before.each(() => {
   probot.load(app);
 });
 
-test("recieves pull_request.labeled event", async function () {
+test.after.each(() => {
+  delete process.env.APPROVE_PR;
+  delete process.env.CREATE_ISSUE;
+  delete process.env.MERGE_PR;
+});
 
-  process.env.APP_ID = '999999'
-  process.env.WEBHOOK_SECRET = 'fakesecret'
-  process.env.PRIVATE_KEY = "fakeprivatekey"
-  process.env.GITHUB_PAT = 'fakepat'
-  process.env.GITHUB_USER = 'fake_user'
-  process.env.APPROVE_PR = 'true'
-  process.env.CREATE_ISSUE = 'true'
-  process.env.MERGE_PR = 'true'
-  process.env.ISSUE_TITLE = 'Emergency PR Audit'
-  process.env.ISSUE_BODY_FILE = 'issueBody.md'
-  process.env.ISSUE_ASSIGNEES = 'tonyclifton,andykaufman'
-  process.env.EMERGENCY_LABEL = 'emergency'
+test("recieves pull_request.labeled event, review, issue, merge", async function () {
+    process.env.APPROVE_PR = 'true';
+    process.env.CREATE_ISSUE = 'true';
+    process.env.MERGE_PR = 'true';
 
   const mock = nock("https://api.github.com")
     // create new check run
     .post(
-      "/repos/robandpdx/superbigmono/pulls/1/reviews"
+      "/repos/robandpdx/superbigmono/pulls/1/reviews",
+      (requestBody) => {
+        //console.log(requestBody);
+        assert.equal(requestBody.event, "APPROVE");
+        return true;
+      }
     )
     .reply(200);
 
-  mock.post("/repos/robandpdx/superbigmono/issues"
+  mock.post("/repos/robandpdx/superbigmono/issues",
+    (requestBody) => {
+      assert.equal(requestBody.title, "Emergency PR Audit");
+      assert.equal(requestBody.assignees, ["tonyclifton", "andykaufman"]);
+      assert.equal(requestBody.labels, ["emergency"]);
+      assert.equal(requestBody.body, "Pull request https://github.com/robandpdx/superbigmono/pull/1 was labeled as an emergency.\n- [ ] Reviewed");
+      return true;
+    }
   )
     .reply(200);
 
