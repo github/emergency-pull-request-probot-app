@@ -38,12 +38,6 @@ const app = require("./app");
 let probot;
 const test = suite("app");
 test.before.each(() => {
-  // set environmet variables used for all tests
-  process.env.APP_ID = '999999';
-  process.env.WEBHOOK_SECRET = 'fakesecret';
-  process.env.PRIVATE_KEY = "fakeprivatekey";
-  process.env.GITHUB_PAT = 'fakepat';
-  process.env.GITHUB_USER = 'fake_user';
   process.env.ISSUE_TITLE = 'Emergency PR Audit';
   process.env.ISSUE_BODY_FILE = 'issueBody.md';
   process.env.ISSUE_ASSIGNEES = 'tonyclifton,andykaufman';
