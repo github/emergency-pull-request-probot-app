@@ -88,7 +88,6 @@ test("recieves pull_request.labeled event, approve, create issue, merge", async 
   mock.put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
 
   await probot.receive(payload);
-
   assert.equal(mock.pendingMocks(), []);
 });
 
@@ -111,7 +110,6 @@ test("recieves pull_request.labeled event, create issue, merge", async function 
   mock.put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
 
   await probot.receive(payload);
-
   assert.equal(mock.pendingMocks(), []);
 });
 
@@ -136,8 +134,106 @@ test("recieves pull_request.labeled event, approve, merge", async function () {
   mock.put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
 
   await probot.receive(payload);
-
   assert.equal(mock.pendingMocks(), []);
+});
+
+test("recieves pull_request.labeled event, approve (fails), create issue, merge", async function () {
+  process.env.APPROVE_PR = 'true';
+  process.env.CREATE_ISSUE = 'true';
+  process.env.MERGE_PR = 'true';
+  
+  // mock the request to add approval to the pr
+  const mock = nock("https://api.github.com")
+    .post(
+      "/repos/robandpdx/superbigmono/pulls/1/reviews",
+      (requestBody) => {
+        checkApprovalRequest(requestBody);
+        return true;
+      }
+    )
+    .replyWithError('something awful happened');
+  // mock the request to create the an issue
+  mock.post("/repos/robandpdx/superbigmono/issues",
+    (requestBody) => {
+      checkIssueRequest(requestBody);
+      return true;
+    }
+  ).reply(200);
+  // mock the request to merge the pr
+  mock.put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
+
+  try {
+    await probot.receive(payload);
+  } catch (err) {
+    assert.equal(mock.pendingMocks(), []);
+    return;
+  }
+});
+
+test("recieves pull_request.labeled event, approve, create issue (fails), merge", async function () {
+  process.env.APPROVE_PR = 'true';
+  process.env.CREATE_ISSUE = 'true';
+  process.env.MERGE_PR = 'true';
+  
+  // mock the request to add approval to the pr
+  const mock = nock("https://api.github.com")
+    .post(
+      "/repos/robandpdx/superbigmono/pulls/1/reviews",
+      (requestBody) => {
+        checkApprovalRequest(requestBody);
+        return true;
+      }
+    )
+    .reply(200);
+  // mock the request to create the an issue
+  mock.post("/repos/robandpdx/superbigmono/issues",
+    (requestBody) => {
+      checkIssueRequest(requestBody);
+      return true;
+    }
+  ).replyWithError('something awful happened');
+  // mock the request to merge the pr
+  mock.put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
+
+  try {
+    await probot.receive(payload);
+  } catch (err) {
+    assert.equal(mock.pendingMocks(), []);
+    return;
+  }
+});
+
+test("recieves pull_request.labeled event, approve, create issue, merge (fails)", async function () {
+  process.env.APPROVE_PR = 'true';
+  process.env.CREATE_ISSUE = 'true';
+  process.env.MERGE_PR = 'true';
+  
+  // mock the request to add approval to the pr
+  const mock = nock("https://api.github.com")
+    .post(
+      "/repos/robandpdx/superbigmono/pulls/1/reviews",
+      (requestBody) => {
+        checkApprovalRequest(requestBody);
+        return true;
+      }
+    )
+    .reply(200);
+  // mock the request to create the an issue
+  mock.post("/repos/robandpdx/superbigmono/issues",
+    (requestBody) => {
+      checkIssueRequest(requestBody);
+      return true;
+    }
+  ).reply(200);
+  // mock the request to merge the pr
+  mock.put("/repos/robandpdx/superbigmono/pulls/1/merge").replyWithError('something awful happened')
+
+  try {
+    await probot.receive(payload);
+  } catch (err) {
+    assert.equal(mock.pendingMocks(), []);
+    return;
+  }
 });
 
 function checkIssueRequest(requestBody) {
