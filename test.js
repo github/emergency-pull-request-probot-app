@@ -9,6 +9,29 @@ const {
   ProbotOctokit,
 } = require("@probot/adapter-aws-lambda-serverless");
 
+const payload = {
+  name: "pull_request",
+  id: "1",
+  payload: {
+    action: "labeled",
+    label: {
+      name: "emergency"
+    },
+    repository: {
+      owner: {
+        login: "probot",
+      },
+      name: "superbigmono",
+      url: "https://api.github.com/repos/robandpdx/superbigmono"
+    },
+    pull_request: {
+      number: 1,
+      url: "https://api.github.com/repos/robandpdx/superbigmono/pulls/1",
+      html_url: "https://github.com/robandpdx/superbigmono/pull/1"
+    },
+  },
+}
+
 const app = require("./app");
 
 /** @type {import('probot').Probot */
@@ -81,28 +104,7 @@ test("recieves pull_request.labeled event, review, issue, merge", async function
   )
     .reply(200);
 
-  await probot.receive({
-    name: "pull_request",
-    id: "1",
-    payload: {
-      action: "labeled",
-      label: {
-        name: "emergency"
-      },
-      repository: {
-        owner: {
-          login: "probot",
-        },
-        name: "superbigmono",
-        url: "https://api.github.com/repos/robandpdx/superbigmono"
-      },
-      pull_request: {
-        number: 1,
-        url: "https://api.github.com/repos/robandpdx/superbigmono/pulls/1",
-        html_url: "https://github.com/robandpdx/superbigmono/pull/1"
-      },
-    },
-  });
+  await probot.receive(payload);
 
   assert.equal(mock.pendingMocks(), []);
 });
