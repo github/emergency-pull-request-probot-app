@@ -60,9 +60,6 @@ Parameters:
       - true
       - false
     Type: String
-  slackSingingSecret:
-    Description: The signing secret for Slack
-    Type: String
   slackBotToken:
     Description: The bot token for Slack
     Type: String
@@ -103,7 +100,6 @@ Resources:
           CREATE_ISSUE: !Ref createIssue
           MERGE_PR: !Ref mergePr
           SLACK_NOTIFY: !Ref slackNotify
-          SLACK_SIGNING_SECRET: !Ref slackSingingSecret
           SLACK_BOT_TOKEN: !Ref slackBotToken
           SLACK_CHANNEL_ID: !Ref slackChannelId
           SLACK_MESSAGE_FILE: !Ref slackMessageFile

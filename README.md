@@ -46,7 +46,6 @@ You will also need a user and PAT with admin permissions on the repos in order t
 - `GITHUB_PAT`
 
 Get the following details about your Slack app:
-- `SLACK_SIGNING_SECRET`
 - `SLACK_BOT_TOKEN`
 
 Also go find the `SLACK_CHANNEL_ID` for the channel you want to send notifications to.  
