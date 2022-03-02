@@ -1,0 +1,23 @@
+display_information:
+  name: Emergency Pull Request
+  description: Notification of emergency pull requests
+  background_color: "#6b6a5d"
+  long_description: "This is the notification piece of the Emergency Pull Request GitHub app.\r
+
+    https://github.com/robandpdx/emergency-pull-request\r
+
+    https://github.com/robandpdx/emergency-pull-request"
+features:
+  bot_user:
+    display_name: Emergency PR
+    always_online: false
+oauth_config:
+  scopes:
+    bot:
+      - channels:read
+      - chat:write
+      - chat:write.public
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
