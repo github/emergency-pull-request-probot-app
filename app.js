@@ -14,6 +14,7 @@ module.exports = (app) => {
 
   app.on("pull_request.labeled", async (context) => {
     let errorsArray = [];
+    let newIssue
     if (context.payload.label.name == "emergency") {
       app.log(`${emergencyLabel} label detected`);
 
@@ -55,8 +56,10 @@ module.exports = (app) => {
           }
         }).then(response => {
           app.log(`Issue created`)
+          newIssue = response.data.html_url;
         }).catch(error => {
           app.log(`Error creating issue: ${error}`)
+          newIssue = 'Failed to create issue';
           errorsArray.push(error);
         });
       }
@@ -75,6 +78,31 @@ module.exports = (app) => {
           errorsArray.push(error);
         });
       }
+
+      // Slack notify
+      if (process.env.SLACK_NOTIFY == 'true') {
+        let slackMessage = fs.readFileSync(process.env.SLACK_MESSAGE_FILE, 'utf8');
+        slackMessage = slackMessage.replace('#pr',context.payload.pull_request.html_url);
+        if (typeof newIssue !== 'undefined' && newIssue != "") {
+          slackMessage = slackMessage.replace('#i',newIssue);
+        }
+        slackMessage = slackMessage.replace('#l',emergencyLabel);
+        const { WebClient } = require('@slack/web-api');
+
+        // Read a token from the environment variables
+        const token = process.env.SLACK_BOT_TOKEN;
+
+        // Initialize
+        const web = new WebClient(token);
+
+        // Send message
+        await web.chat.postMessage({
+          text: slackMessage,
+          channel: process.env.SLACK_CHANNEL_ID
+        });
+      }
+
+      // Return errors, or true if no errors
       if (errorsArray.length > 0) {
         app.log(`Errors: ${errorsArray}`);
         throw errorsArray;
