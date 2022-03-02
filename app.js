@@ -87,13 +87,20 @@ module.exports = (app) => {
           slackMessage = slackMessage.replace('#i',newIssue);
         }
         slackMessage = slackMessage.replace('#l',emergencyLabel);
-        const { WebClient } = require('@slack/web-api');
+        const { WebClient, retryPolicies } = require('@slack/web-api');
 
         // Read a token from the environment variables
         const token = process.env.SLACK_BOT_TOKEN;
-
+        let retryConfig = retryPolicies.fiveRetriesInFiveMinutes;
+        if (process.env.SLACK_RETYRY_CONFIG == '0') {
+          retryConfig = {
+            retries: 0
+          };
+        }
         // Initialize
-        const web = new WebClient(token);
+        const web = new WebClient(token, {
+          retryConfig: retryConfig,
+        });
 
         // Send message
         console.log("Sending slack message");
