@@ -100,6 +100,11 @@ module.exports = (app) => {
         await web.chat.postMessage({
           text: slackMessage,
           channel: process.env.SLACK_CHANNEL_ID
+        }).then(response => {
+          console.log(`Slack notification sent`)
+        }).catch(error => {
+          console.log(`Error sending slack notification: ${error}`)
+          errorsArray.push(error);
         });
       }
 
