@@ -64,6 +64,7 @@ test.after.each(() => {
   delete process.env.APPROVE_PR;
   delete process.env.CREATE_ISSUE;
   delete process.env.MERGE_PR;
+  delete process.env.SLACK_NOTIFY
   delete process.env.SLACK_MESSAGE_FILE;
 });
 
@@ -230,11 +231,40 @@ test("recieves pull_request.labeled event, slack notify", async function () {
   assert.equal(mockSlack.pendingMocks(), []);
 });
 
-// This test will do all 4 things: approve, create issue, merge, and send slack notification, but the appoval will fail
+// This test will only slack notify (fail)
+test("recieves pull_request.labeled event, slack notify (fail)", async function () {
+  process.env.APPROVE_PR = 'false';
+  process.env.CREATE_ISSUE = 'false';
+  process.env.MERGE_PR = 'false';
+  process.env.SLACK_NOTIFY = 'true';
+  process.env.SLACK_MESSAGE_FILE = 'slackMessageNoIssue.txt';
+  process.env.SLACK_RETYRY_CONFIG = '0';
+  
+  // mock the request to send the slack notification
+  const mockSlack = nock("https://slack.com")
+    .post("/api/chat.postMessage",
+    (requestBody) => {
+      //console.log(requestBody);
+      checkSlackNotifyRequestNoIssue(requestBody);
+      return true;
+    }
+    ).reply(500);
+
+    try {
+      await probot.receive(payload);
+    } catch (err) {
+      assert.equal(mockSlack.pendingMocks(), []);
+      assert.equal(err.errors[0][0].message, "An HTTP protocol error occurred: statusCode = 500");
+      return;
+    }
+});
+
+// This test will do 3 things: approve, create issue, merge, but the appoval will fail
 test("recieves pull_request.labeled event, approve (fails), create issue, merge", async function () {
   process.env.APPROVE_PR = 'true';
   process.env.CREATE_ISSUE = 'true';
   process.env.MERGE_PR = 'true';
+  process.env.SLACK_NOTIFY = 'false';
   
   // mock the request to add approval to the pr
   const mock = nock("https://api.github.com")
@@ -260,15 +290,17 @@ test("recieves pull_request.labeled event, approve (fails), create issue, merge"
     await probot.receive(payload);
   } catch (err) {
     assert.equal(mock.pendingMocks(), []);
+    assert.equal(err.errors[0][0].message, "something awful happened");
     return;
   }
 });
 
-// This test will do all 4 things: approve, create issue, merge, and send slack notification, but creating the issue will fail
+// This test will do 3 things: approve, create issue, merge, but creating the issue will fail
 test("recieves pull_request.labeled event, approve, create issue (fails), merge", async function () {
   process.env.APPROVE_PR = 'true';
   process.env.CREATE_ISSUE = 'true';
   process.env.MERGE_PR = 'true';
+  process.env.SLACK_NOTIFY = 'false';
   
   // mock the request to add approval to the pr
   const mock = nock("https://api.github.com")
@@ -294,15 +326,17 @@ test("recieves pull_request.labeled event, approve, create issue (fails), merge"
     await probot.receive(payload);
   } catch (err) {
     assert.equal(mock.pendingMocks(), []);
+    assert.equal(err.errors[0][0].message, "something awful happened");
     return;
   }
 });
 
-// This test will do all 4 things: approve, create issue, merge, and send slack notification, but merging the PR will fail
+// This test will do 3 things: approve, create issue, merge, but merging the PR will fail
 test("recieves pull_request.labeled event, approve, create issue, merge (fails)", async function () {
   process.env.APPROVE_PR = 'true';
   process.env.CREATE_ISSUE = 'true';
   process.env.MERGE_PR = 'true';
+  process.env.SLACK_NOTIFY = 'false';
   
   // mock the request to add approval to the pr
   const mock = nock("https://api.github.com")
@@ -328,6 +362,7 @@ test("recieves pull_request.labeled event, approve, create issue, merge (fails)"
     await probot.receive(payload);
   } catch (err) {
     assert.equal(mock.pendingMocks(), []);
+    assert.equal(err.errors[0][0].message, "something awful happened");
     return;
   }
 });
