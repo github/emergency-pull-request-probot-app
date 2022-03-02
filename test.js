@@ -68,6 +68,20 @@ test.after.each(() => {
   delete process.env.SLACK_MESSAGE_FILE;
 });
 
+// This test sends a payload that is not an emergency label
+test("recieves pull_request.labeled event, does nothing because not emergency label", async function () {
+  await probot.receive({
+    name: "pull_request",
+    id: "1",
+    payload: {
+      action: "labeled",
+      label: {
+        name: "other"
+      },
+    },
+  });
+});
+
 // This test will do all 4 things: approve, create issue, merge, and send slack notification
 test("recieves pull_request.labeled event, approve, create issue, merge, slack notify", async function () {
   process.env.APPROVE_PR = 'true';
@@ -166,6 +180,28 @@ test("recieves pull_request.labeled event, create issue", async function () {
     .post("/repos/robandpdx/superbigmono/issues",
       (requestBody) => {
         checkIssueRequest(requestBody);
+        return true;
+      }
+    )
+    .reply(200);
+
+  await probot.receive(payload);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will only create an issue without assingees
+test("recieves pull_request.labeled event, create issue no assignees", async function () {
+  process.env.APPROVE_PR = 'false';
+  process.env.CREATE_ISSUE = 'true';
+  process.env.MERGE_PR = 'false';
+  process.env.SLACK_NOTIFY = 'false';
+  delete process.env.ISSUE_ASSIGNEES
+
+  // mock the request to create the an issue
+  const mock = nock("https://api.github.com")
+    .post("/repos/robandpdx/superbigmono/issues",
+      (requestBody) => {
+        checkIssueNoAssigneesRequest(requestBody);
         return true;
       }
     )
@@ -370,6 +406,13 @@ test("recieves pull_request.labeled event, approve, create issue, merge (fails)"
 function checkIssueRequest(requestBody) {
   assert.equal(requestBody.title, "Emergency PR Audit");
   assert.equal(requestBody.assignees, ["tonyclifton", "andykaufman"]);
+  assert.equal(requestBody.labels, ["emergency"]);
+  assert.equal(requestBody.body, "Pull request https://github.com/robandpdx/superbigmono/pull/1 was labeled as an emergency.\n- [ ] Reviewed");
+}
+
+function checkIssueNoAssigneesRequest(requestBody) {
+  assert.equal(requestBody.title, "Emergency PR Audit");
+  assert.equal((typeof requestBody.assignees), 'undefined');
   assert.equal(requestBody.labels, ["emergency"]);
   assert.equal(requestBody.body, "Pull request https://github.com/robandpdx/superbigmono/pull/1 was labeled as an emergency.\n- [ ] Reviewed");
 }
