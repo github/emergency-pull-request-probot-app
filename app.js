@@ -9,34 +9,34 @@ const auth = {
  * @param {import('probot').Probot} app
  */
 module.exports = (app) => {
-  app.log("Yay! The app was loaded!");
+  console.log("Yay! The app was loaded!");
   const emergencyLabel = process.env.EMERGENCY_LABEL;
 
   app.on("pull_request.labeled", async (context) => {
     let errorsArray = [];
     let newIssue
     if (context.payload.label.name == "emergency") {
-      app.log(`${emergencyLabel} label detected`);
+      console.log(`${emergencyLabel} label detected`);
 
       // Approve PR
       if (process.env.APPROVE_PR == 'true') {
-        app.log(`Adding review to PR`);
+        console.log(`Adding review to PR`);
         await axios({
           method: 'post',
           url: `${context.payload.pull_request.url}/reviews`,
           auth: auth,
           data: { "event": "APPROVE" }
         }).then(response => {
-          app.log(`Review added`)
+          console.log(`Review added`)
         }).catch(error => {
-          app.log(`Error adding review: ${error}`)
+          console.log(`Error adding review: ${error}`)
           errorsArray.push(error);
         });
       }
 
       // Create issue
       if (process.env.CREATE_ISSUE == 'true') {
-        app.log(`Creating issue`);
+        console.log(`Creating issue`);
         let assignees = {};
         if (typeof process.env.ISSUE_ASSIGNEES !== 'undefined' && process.env.ISSUE_ASSIGNEES != "") {
           let assigneesArray = process.env.ISSUE_ASSIGNEES.split(",");
@@ -55,10 +55,10 @@ module.exports = (app) => {
             ...assignees
           }
         }).then(response => {
-          app.log(`Issue created`)
+          console.log(`Issue created`)
           newIssue = response.data.html_url;
         }).catch(error => {
-          app.log(`Error creating issue: ${error}`)
+          console.log(`Error creating issue: ${error}`)
           newIssue = 'Failed to create issue';
           errorsArray.push(error);
         });
@@ -66,15 +66,15 @@ module.exports = (app) => {
 
       // Merge PR
       if (process.env.MERGE_PR == 'true') {
-        app.log(`Merging PR`);
+        console.log(`Merging PR`);
         await axios({
           method: 'put',
           url: `${context.payload.pull_request.url}/merge`,
           auth: auth
         }).then(response => {
-          app.log(`PR merged`)
+          console.log(`PR merged`)
         }).catch(error => {
-          app.log(`Error merging PR: ${error}`)
+          console.log(`Error merging PR: ${error}`)
           errorsArray.push(error);
         });
       }
@@ -96,6 +96,7 @@ module.exports = (app) => {
         const web = new WebClient(token);
 
         // Send message
+        console.log("Sending slack message");
         await web.chat.postMessage({
           text: slackMessage,
           channel: process.env.SLACK_CHANNEL_ID
@@ -104,7 +105,7 @@ module.exports = (app) => {
 
       // Return errors, or true if no errors
       if (errorsArray.length > 0) {
-        app.log(`Errors: ${errorsArray}`);
+        console.log(`Errors: ${errorsArray}`);
         throw errorsArray;
       } else {
         return true;
