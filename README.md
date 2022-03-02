@@ -2,13 +2,14 @@
 
 This repository is a probot app deploying to [AWS Lambda](https://aws.amazon.com/lambda/) using [aws sam](https://aws.amazon.com/serverless/sam/). The purpose of this app is to provide a way for developers to bypass aproval and checks in order to merge an emergency change to the main branch. There is an issue created for audit purposes.
 
-The app listens for [Pull Request events](https://docs.github.com/en/developers/webhooks-and-events/events/github-event-types#pullrequestevent) where action=`labeled` and can do 3 things:
+The app listens for [Pull Request events](https://docs.github.com/en/developers/webhooks-and-events/events/github-event-types#pullrequestevent) where action=`labeled` and can do 4 things:
 1. Approve an emergency PR
 1. Create an issue to audit the emergency PR
 1. Merge the emergency PR, bypassing approvals and checks
+1. Send notification via slack
 
 Each of the above can be toggled on or off using the following environment variables which are meant to be self explanatory:
-`APPROVE_PR, CREATE_ISSUE, MERGE_PR`
+`APPROVE_PR, CREATE_ISSUE, MERGE_PR, SLACK_NOTIFY`
 Setting each of the above to `true` will enable the feature. Any other value will disable the feature.
 
 To configure the emergency label this app is looking for, set `EMERGENCY_LABEL` env var.
@@ -26,6 +27,12 @@ Generate a PAT for the bot user with repo scope. Configure SSO for the PAT, auth
 Create the GH App in your org or repo. Define a client secrent. Generate a private key. Subscripe to events and grant permissions.
 
 Once you have the bot user setup and the GitHub app configured you are ready to deploy!
+
+### Create a Slack App
+1. Navigate to your slack workspace `https://<workspace-name>.slack.com/home`
+1. In the menu on the left, under `Other`, click the `API` link
+1. Click `Create an app`
+1. Create the app using the manifest file emergency-pr-manifest.yml
 ## Deployment
 Get the following details about your GitHub app:
 - `APP_ID`
@@ -37,6 +44,13 @@ You will need to base64 encode the private key.
 You will also need a user and PAT with admin permissions on the repos in order to merge bypassing checks and required approvals. These will be supplied to the app as the following env vars:
 - `GITHUB_USER`
 - `GITHUB_PAT`
+
+Get the following details about your Slack app:
+- `SLACK_SIGNING_SECRET`
+- `SLACK_BOT_TOKEN`
+
+Also go find the `SLACK_CHANNEL_ID` for the channel you want to send notifications to.  
+You will need to configure the contents of the slack message by setting value of `SLACK_MESSAGE_FILE` and editing the contents of that file.
 
 You will need to decide the label that this app looks for, the contents of the issue, and the assignee of the issue:
 - `EMERGENCY_LABEL`  This is the label that indicates an emergency PR
