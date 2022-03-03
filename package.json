@@ -20,6 +20,7 @@
   "license": "ISC",
   "devDependencies": {
     "nock": "^13.0.7",
+    "nyc": "^15.1.0",
     "smee-client": "^1.2.2",
     "uvu": "^0.5.1"
   },
