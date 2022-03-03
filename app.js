@@ -15,7 +15,7 @@ module.exports = (app) => {
   app.on("pull_request.labeled", async (context) => {
     let errorsArray = [];
     let newIssue
-    if (context.payload.label.name == "emergency") {
+    if (context.payload.label.name == emergencyLabel) {
       console.log(`${emergencyLabel} label detected`);
 
       // Approve PR
