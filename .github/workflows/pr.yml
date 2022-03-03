@@ -1,0 +1,25 @@
+name: Pull Request Tests
+
+on:
+  pull_request:
+    branches: [ '*' ]
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '12'
+        check-latest: true
+    - run: npm ci
+    - run: npm test
+    - uses: tintef/nyc-reporter-action@0.2.5
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SKIP_COVERAGE_FOLDER: true
