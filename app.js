@@ -144,9 +144,40 @@ module.exports = (app) => {
         }
       }).then(response => {
         console.log(`${emergencyLabel} label reapplied to PR: ${context.payload.pull_request.html_url}`);
-        newIssue = response.data.html_url;
       }).catch(error => {
         console.log(`Error reapplying ${emergencyLabel} label: ${error} to PR: ${context.payload.pull_request.html_url}`);
+        errorsArray.push(error);
+      });
+
+      // Return errors, or true if no errors
+      if (errorsArray.length > 0) {
+        console.log(`Errors: ${errorsArray}`);
+        throw errorsArray;
+      } else {
+        return true;
+      }
+    }
+  });
+
+  app.on("issues.unlabeled", async (context) => {
+    if (context.payload.label.name == emergencyLabel && process.env.EMERGENCY_LABEL_PERMANENT == 'true') {
+      // emergencyLabel was removed and it should be permanent, so do stuff...
+      console.log(`Reaplying ${emergencyLabel} label to PR: ${context.payload.issue.html_url}`);
+
+      let errorsArray = [];
+
+      // Add emergency label
+      await axios({
+        method: 'patch',
+        url: context.payload.issue.url,
+        auth: auth,
+        data: { 
+          "labels": [emergencyLabel]
+        }
+      }).then(response => {
+        console.log(`${emergencyLabel} label reapplied to PR: ${context.payload.issue.html_url}`);
+      }).catch(error => {
+        console.log(`Error reapplying ${emergencyLabel} label: ${error} to PR: ${context.payload.issue.html_url}`);
         errorsArray.push(error);
       });
 

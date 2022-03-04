@@ -26,9 +26,10 @@ Generate a PAT for the bot user with repo scope. Configure SSO for the PAT, auth
 ### Create GitHub App
 Create the GH App in your org or repo. Define a client secrent. Generate a private key.
 #### Grant repository permissions
-Set Issues access to `Read-only`
+Set Issues access to `Read & write`
 Set Pull Requests access to `Read & write`
 #### Subscripe to events
+Check `Issues`
 Check `Issue comment`
 Check `Pull request`
 

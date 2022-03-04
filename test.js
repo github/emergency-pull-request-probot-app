@@ -48,6 +48,21 @@ const payloadUnlabeled = {
   },
 }
 
+const payloadIssueUnlabeled = {
+  name: "issues",
+  id: "1",
+  payload: {
+    action: "unlabeled",
+    label: {
+      name: "emergency"
+    },
+    issue: {
+      url: "https://api.github.com/repos/robandpdx/superbigmono/issues/1",
+      html_url: "https://github.com/robandpdx/superbigmono/pull/1",
+    },
+  },
+}
+
 const payloadPrOpened = {
   name: "pull_request",
   id: "1",
@@ -455,7 +470,7 @@ test("recieves pull_request.labeled event, approve, create issue, merge (fails)"
   }
 });
 
-// This test will reapply the emergency label
+// This test will reapply the emergency label to a PR
 test("recieves pull_request.unlabeled event, reapply emergency label", async function () {
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
   // mock the request to reapply the emergency label
@@ -472,7 +487,7 @@ test("recieves pull_request.unlabeled event, reapply emergency label", async fun
   assert.equal(mock.pendingMocks(), []);
 });
 
-// This test will fail to reapply the emergency label
+// This test will fail to reapply the emergency label to a PR
 test("recieves pull_request.unlabeled event, reapply emergency label", async function () {
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
   // mock the request to reapply the emergency label
@@ -496,11 +511,59 @@ test("recieves pull_request.unlabeled event, reapply emergency label", async fun
   assert.equal(mock.pendingMocks(), []);
 });
 
-// This test will not reapply the emergency label
+// This test will not reapply the emergency label to a PR
 test("recieves pull_request.unlabeled event, dont't emergency label", async function () {
   delete process.env.EMERGENCY_LABEL_PERMANENT;
   process.env.EMERGENCY_LABEL_PERMANENT = 'false';
   await probot.receive(payloadUnlabeled);
+});
+
+// This test will reapply the emergency label to an issue
+test("recieves pull_request.unlabeled event, reapply emergency label", async function () {
+  process.env.EMERGENCY_LABEL_PERMANENT = 'true';
+  // mock the request to reapply the emergency label
+  const mock = nock("https://api.github.com")
+    .patch("/repos/robandpdx/superbigmono/issues/1",
+      (requestBody) => {
+        assert.equal(requestBody.labels[0], "emergency");
+        return true;
+      }
+    )
+    .reply(200);
+
+  await probot.receive(payloadIssueUnlabeled);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will fail to reapply the emergency label to an issue
+test("recieves pull_request.unlabeled event, reapply emergency label", async function () {
+  process.env.EMERGENCY_LABEL_PERMANENT = 'true';
+  // mock the request to reapply the emergency label
+  const mock = nock("https://api.github.com")
+    .patch("/repos/robandpdx/superbigmono/issues/1",
+      (requestBody) => {
+        assert.equal(requestBody.labels[0], "emergency");
+        return true;
+      }
+    )
+    .replyWithError('something awful happened');
+
+  try {
+    await probot.receive(payloadIssueUnlabeled);
+  } catch (err) {
+    assert.equal(mock.pendingMocks(), []);
+    assert.equal(err.errors[0][0].message, "something awful happened");
+    assert.equal(err.errors[0].length, 1);
+    return;
+  }
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will not reapply the emergency label to an issue
+test("recieves pull_request.unlabeled event, dont't emergency label", async function () {
+  delete process.env.EMERGENCY_LABEL_PERMANENT;
+  process.env.EMERGENCY_LABEL_PERMANENT = 'false';
+  await probot.receive(payloadIssueUnlabeled);
 });
 
 // This test will apply the emergency label based on the PR contents
