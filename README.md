@@ -24,7 +24,13 @@ If you do not have "Require status checks to pass before merging" you can make t
 
 Generate a PAT for the bot user with repo scope. Configure SSO for the PAT, authorizing the PAT for your org.
 ### Create GitHub App
-Create the GH App in your org or repo. Define a client secrent. Generate a private key. Subscripe to events and grant permissions.
+Create the GH App in your org or repo. Define a client secrent. Generate a private key.
+#### Grant repository permissions
+Set Issues access to `Read-only`
+Set Pull Requests access to `Read & write`
+#### Subscripe to events
+Check `Issue comment`
+Check `Pull request`
 
 Once you have the bot user setup and the GitHub app configured you are ready to deploy!
 
@@ -56,6 +62,9 @@ You will need to decide the label that this app looks for, the contents of the i
 - `ISSUE_TITLE`  This is the title of the issue created
 - `ISSUE_BODY_FILE`  This is the file containing the body of the issue created
 - `ISSUE_ASSIGNEES`  This is a comma separated list of the issue assignees
+
+To make the emergency label permanent set `EMERGENCY_LABEL_PERMANENT` to true. Doing this will cause the app to reapply the emergency label if it is removed.
+To trigger the label (and therefore everything configured) set `TRIGGER_STRING` to the value you want the app to look for in PRs and PR comments.
 
 1. Setup your aws cli creds
 1. set your aws profile by running `export AWS_PROFILE=<profile>`
