@@ -13,7 +13,7 @@ const emergencyLabel = process.env.EMERGENCY_LABEL || 'emergency';
 module.exports = (app) => {
   //console.log("Yay! The app was loaded!");
   app.on("pull_request.labeled", async (context) => {
-    if (context.payload.label.name == emergencyLabel && context.payload.pull_request.merged =="false") {
+    if (context.payload.label.name == emergencyLabel && context.payload.pull_request.merged == false) {
       // emergency label exists and pull request is not merged, so do stuff...
       console.log(`${emergencyLabel} label detected`);
 
