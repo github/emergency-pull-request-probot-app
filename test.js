@@ -27,7 +27,22 @@ const payload = {
     pull_request: {
       number: 1,
       url: "https://api.github.com/repos/robandpdx/superbigmono/pulls/1",
-      html_url: "https://github.com/robandpdx/superbigmono/pull/1"
+      html_url: "https://github.com/robandpdx/superbigmono/pull/1",
+      merged: "false"
+    },
+  },
+}
+
+const payloadUnlabeled = {
+  name: "pull_request",
+  id: "1",
+  payload: {
+    action: "unlabeled",
+    label: {
+      name: "emergency"
+    },
+    pull_request: {
+      issue_url: "https://api.github.com/repos/robandpdx/superbigmono/issues/1"
     },
   },
 }
@@ -43,8 +58,8 @@ test.before.each(() => {
   process.env.ISSUE_ASSIGNEES = 'tonyclifton,andykaufman';
   process.env.EMERGENCY_LABEL = 'emergency';
   process.env.SLACK_SIGNING_SECRET="fake-signing-secret";
-  process.env.SLACK_BOT_TOKEN="xoxb-fake-bot-token"
-  process.env.SLACK_CHANNEL_ID="fake-channel-id"
+  process.env.SLACK_BOT_TOKEN="xoxb-fake-bot-token";
+  process.env.SLACK_CHANNEL_ID="fake-channel-id";
 
   probot = new Probot({
     // simple authentication as alternative to appId/privateKey
@@ -64,8 +79,9 @@ test.after.each(() => {
   delete process.env.APPROVE_PR;
   delete process.env.CREATE_ISSUE;
   delete process.env.MERGE_PR;
-  delete process.env.SLACK_NOTIFY
+  delete process.env.SLACK_NOTIFY;
   delete process.env.SLACK_MESSAGE_FILE;
+  delete process.env.EMERGENCY_LABEL_PERMANENT;
 });
 
 // This test sends a payload that is not an emergency label
@@ -401,6 +417,53 @@ test("recieves pull_request.labeled event, approve, create issue, merge (fails)"
     assert.equal(err.errors[0][0].message, "something awful happened");
     return;
   }
+});
+
+// This test will reapply the emergency label
+test("recieves pull_request.unlabeled event, reapply emergency label", async function () {
+  process.env.EMERGENCY_LABEL_PERMANENT = 'true';
+  // mock the request to reapply the emergency label
+  const mock = nock("https://api.github.com")
+    .patch("/repos/robandpdx/superbigmono/issues/1",
+      (requestBody) => {
+        assert.equal(requestBody.labels[0], "emergency");
+        return true;
+      }
+    )
+    .reply(200);
+
+  await probot.receive(payloadUnlabeled);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will fail to reapply the emergency label
+test("recieves pull_request.unlabeled event, reapply emergency label", async function () {
+  process.env.EMERGENCY_LABEL_PERMANENT = 'true';
+  // mock the request to reapply the emergency label
+  const mock = nock("https://api.github.com")
+    .patch("/repos/robandpdx/superbigmono/issues/1",
+      (requestBody) => {
+        assert.equal(requestBody.labels[0], "emergency");
+        return true;
+      }
+    )
+    .replyWithError('something awful happened');
+
+  try {
+    await probot.receive(payloadUnlabeled);
+  } catch (err) {
+    assert.equal(mock.pendingMocks(), []);
+    assert.equal(err.errors[0][0].message, "something awful happened");
+    return;
+  }
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will not reapply the emergency label
+test("recieves pull_request.unlabeled event, dont't emergency label", async function () {
+  delete process.env.EMERGENCY_LABEL_PERMANENT;
+  process.env.EMERGENCY_LABEL_PERMANENT = 'false';
+  await probot.receive(payloadUnlabeled);
 });
 
 function checkIssueRequest(requestBody) {

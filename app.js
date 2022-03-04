@@ -5,20 +5,22 @@ const auth = {
   password: process.env.GITHUB_PAT
 }
 
+const emergencyLabel = process.env.EMERGENCY_LABEL || 'emergency';
+
 /**
  * @param {import('probot').Probot} app
  */
 module.exports = (app) => {
-  console.log("Yay! The app was loaded!");
-  const emergencyLabel = process.env.EMERGENCY_LABEL;
-
+  //console.log("Yay! The app was loaded!");
   app.on("pull_request.labeled", async (context) => {
-    let errorsArray = [];
-    let newIssue
-    if (context.payload.label.name == emergencyLabel) {
+    if (context.payload.label.name == emergencyLabel && context.payload.pull_request.merged =="false") {
+      // emergency label exists and pull request is not merged, so do stuff...
       console.log(`${emergencyLabel} label detected`);
 
-      // Approve PR
+      let errorsArray = [];
+      let newIssue
+
+      // Approve PR, if configured to do so
       if (process.env.APPROVE_PR == 'true') {
         console.log(`Adding review to PR`);
         await axios({
@@ -27,14 +29,14 @@ module.exports = (app) => {
           auth: auth,
           data: { "event": "APPROVE" }
         }).then(response => {
-          console.log(`Review added`)
+          console.log(`Review added`);
         }).catch(error => {
-          console.log(`Error adding review: ${error}`)
+          console.log(`Error adding review: ${error}`);
           errorsArray.push(error);
         });
       }
 
-      // Create issue
+      // Create issue, if configured to do so
       if (process.env.CREATE_ISSUE == 'true') {
         console.log(`Creating issue`);
         let assignees = {};
@@ -43,7 +45,7 @@ module.exports = (app) => {
           assignees = {"assignees": assigneesArray.map(s => s.trim())};
         }
         let issueBody = fs.readFileSync(process.env.ISSUE_BODY_FILE, 'utf8');
-        issueBody = issueBody.replace('#',context.payload.pull_request.html_url)
+        issueBody = issueBody.replace('#',context.payload.pull_request.html_url);
         await axios({
           method: 'post',
           url: `${context.payload.repository.url}/issues`,
@@ -64,7 +66,7 @@ module.exports = (app) => {
         });
       }
 
-      // Merge PR
+      // Merge PR, if configured to do so
       if (process.env.MERGE_PR == 'true') {
         console.log(`Merging PR`);
         await axios({
@@ -72,14 +74,14 @@ module.exports = (app) => {
           url: `${context.payload.pull_request.url}/merge`,
           auth: auth
         }).then(response => {
-          console.log(`PR merged`)
+          console.log(`PR merged`);
         }).catch(error => {
-          console.log(`Error merging PR: ${error}`)
+          console.log(`Error merging PR: ${error}`);
           errorsArray.push(error);
         });
       }
 
-      // Slack notify
+      // Slack notify, if configured to do so
       if (process.env.SLACK_NOTIFY == 'true') {
         let slackMessage = fs.readFileSync(process.env.SLACK_MESSAGE_FILE, 'utf8');
         slackMessage = slackMessage.replace('#pr',context.payload.pull_request.html_url);
@@ -88,7 +90,7 @@ module.exports = (app) => {
         }
         slackMessage = slackMessage.replace('#l',emergencyLabel);
         const { WebClient, retryPolicies } = require('@slack/web-api');
-
+        
         // Read a token from the environment variables
         const token = process.env.SLACK_BOT_TOKEN;
         let retryConfig = retryPolicies.fiveRetriesInFiveMinutes;
@@ -108,9 +110,9 @@ module.exports = (app) => {
           text: slackMessage,
           channel: process.env.SLACK_CHANNEL_ID
         }).then(response => {
-          console.log(`Slack notification sent`)
+          console.log(`Slack notification sent`);
         }).catch(error => {
-          console.log(`Error sending slack notification: ${error}`)
+          console.log(`Error sending slack notification: ${error}`);
           errorsArray.push(error);
         });
       }
@@ -122,6 +124,31 @@ module.exports = (app) => {
       } else {
         return true;
       }
+    }
+  });
+
+  app.on("pull_request.unlabeled", async (context) => {
+    if (context.payload.label.name == emergencyLabel && process.env.EMERGENCY_LABEL_PERMANENT == 'true') {
+      // emergencyLabel was removed and it should be permanent, so do stuff...
+      console.log(`Reaplying ${emergencyLabel} label to PR: ${context.payload.pull_request.html_url}`);
+
+      let errorsArray = [];
+
+      // Add emergency label
+      await axios({
+        method: 'patch',
+        url: context.payload.pull_request.issue_url,
+        auth: auth,
+        data: { 
+          "labels": [emergencyLabel]
+        }
+      }).then(response => {
+        console.log(`${emergencyLabel} label reapplied to PR: ${context.payload.pull_request.html_url}`);
+        newIssue = response.data.html_url;
+      }).catch(error => {
+        console.log(`Error reapplying ${emergencyLabel} label: ${error} to PR: ${context.payload.pull_request.html_url}`);
+        errorsArray.push(error);
+      });
     }
   });
 };
