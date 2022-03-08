@@ -70,6 +70,17 @@ Parameters:
     Description: The file containing the message for Slack
     Default: slackMessage.txt
     Type: String
+  emergencyLabelPermanent:
+    Description: Enable the app prevent removal of the emergency label on a PR or Issue
+    Default: true
+    AllowedValues:
+      - true
+      - false
+    Type: String
+  triggerString:
+    Description: The string value in a PR or Issue title that triggers appling the emegency label
+    Default: emergency landing
+    Type: String
 
 Resources:
   webhooks:
@@ -103,6 +114,8 @@ Resources:
           SLACK_BOT_TOKEN: !Ref slackBotToken
           SLACK_CHANNEL_ID: !Ref slackChannelId
           SLACK_MESSAGE_FILE: !Ref slackMessageFile
+          EMERGENCY_LABEL_PERMANENT: !Ref emergencyLabelPermanent
+          TRIGGER_STRING: !Ref triggerString
 
 Outputs:
   WebhooksUrl:

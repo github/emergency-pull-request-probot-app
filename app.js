@@ -144,11 +144,108 @@ module.exports = (app) => {
         }
       }).then(response => {
         console.log(`${emergencyLabel} label reapplied to PR: ${context.payload.pull_request.html_url}`);
-        newIssue = response.data.html_url;
       }).catch(error => {
         console.log(`Error reapplying ${emergencyLabel} label: ${error} to PR: ${context.payload.pull_request.html_url}`);
         errorsArray.push(error);
       });
+
+      // Return errors, or true if no errors
+      if (errorsArray.length > 0) {
+        console.log(`Errors: ${errorsArray}`);
+        throw errorsArray;
+      } else {
+        return true;
+      }
+    }
+  });
+
+  app.on("issues.unlabeled", async (context) => {
+    if (context.payload.label.name == emergencyLabel && process.env.EMERGENCY_LABEL_PERMANENT == 'true') {
+      // emergencyLabel was removed and it should be permanent, so do stuff...
+      console.log(`Reaplying ${emergencyLabel} label to PR: ${context.payload.issue.html_url}`);
+
+      let errorsArray = [];
+
+      // Add emergency label
+      await axios({
+        method: 'patch',
+        url: context.payload.issue.url,
+        auth: auth,
+        data: { 
+          "labels": [emergencyLabel]
+        }
+      }).then(response => {
+        console.log(`${emergencyLabel} label reapplied to PR: ${context.payload.issue.html_url}`);
+      }).catch(error => {
+        console.log(`Error reapplying ${emergencyLabel} label: ${error} to PR: ${context.payload.issue.html_url}`);
+        errorsArray.push(error);
+      });
+
+      // Return errors, or true if no errors
+      if (errorsArray.length > 0) {
+        console.log(`Errors: ${errorsArray}`);
+        throw errorsArray;
+      } else {
+        return true;
+      }
+    }
+  });
+
+  app.on("pull_request.opened", async (context) => {
+    if (context.payload.pull_request.body.toLocaleLowerCase().includes(process.env.TRIGGER_STRING)) {
+      // Found the trigger string, so add the emergency label to trigger the other stuff...
+      let errorsArray = [];
+      await axios({
+        method: 'patch',
+        url: context.payload.pull_request.issue_url,
+        auth: auth,
+        data: { 
+          "labels": [emergencyLabel]
+        }
+      }).then(response => {
+        console.log(`${emergencyLabel} label applied to PR: ${context.payload.pull_request.html_url}`);
+        newIssue = response.data.html_url;
+      }).catch(error => {
+        console.log(`Error applying ${emergencyLabel} label: ${error} to PR: ${context.payload.pull_request.html_url}`);
+        errorsArray.push(error);
+      });
+
+      // Return errors, or true if no errors
+      if (errorsArray.length > 0) {
+        console.log(`Errors: ${errorsArray}`);
+        throw errorsArray;
+      } else {
+        return true;
+      }
+    }
+  });
+
+  app.on("issue_comment.created", async (context) => {
+    if (context.payload.issue.pull_request && context.payload.comment.body.toLocaleLowerCase().includes(process.env.TRIGGER_STRING)) {
+      // This is a comment on a PR and we found the trigger string, so add the emergency label to trigger the other stuff...
+      let errorsArray = [];
+      await axios({
+        method: 'patch',
+        url: context.payload.issue.url,
+        auth: auth,
+        data: { 
+          "labels": [emergencyLabel]
+        }
+      }).then(response => {
+        console.log(`${emergencyLabel} label applied to PR: ${context.payload.issue.pull_request.html_url}`);
+        newIssue = response.data.html_url;
+      }).catch(error => {
+        console.log(`Error applying ${emergencyLabel} label: ${error} to PR: ${context.payload.issue.pull_request.html_url}`);
+        errorsArray.push(error);
+      });
+
+      // Return errors, or true if no errors
+      if (errorsArray.length > 0) {
+        console.log(`Errors: ${errorsArray}`);
+        throw errorsArray;
+      } else {
+        return true;
+      }
     }
   });
 };
