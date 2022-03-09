@@ -17,6 +17,7 @@ jobs:
       with:
         node-version: '12'
         check-latest: true
+    - run: npm install -g npm
     - run: npm ci
     - run: npm test
     - uses: tintef/nyc-reporter-action@0.2.5
