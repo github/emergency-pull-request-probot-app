@@ -1,8 +1,8 @@
 {
-  "name": "@probot/example-aws-lambda-serverless",
+  "name": "pinterest-emergency-landing",
   "version": "1.0.0",
   "private": true,
-  "description": "Probot & AWS Lambda example",
+  "description": "GitHub App for emergency pull requests",
   "main": "app.js",
   "scripts": {
     "start": "probot run ./app.js",
@@ -14,10 +14,10 @@
     "axios": "^0.26.0",
     "probot": "^11.0.1"
   },
-  "repository": "github:probot/example-aws-lambda-serverless",
+  "repository": "githubcustomers:pinterest-emergency-landing",
   "keywords": [],
-  "author": "Gregor Martynus (https://twitter.com/gr2m)",
-  "license": "ISC",
+  "author": "Rob Anderson (https://github.com/robandpdx)",
+  "license": "MIT",
   "devDependencies": {
     "mocha": "^9.2.1",
     "nock": "^13.0.7",
