@@ -14,8 +14,13 @@ Setting each of the above to `true` will enable the feature. Any other value wil
 
 To configure the emergency label this app is looking for, set `EMERGENCY_LABEL` env var.
 
-The issue this app will create can be configured by setting the ISSUE_TITLE, and ISSUE_BODY_FILE. The ISSUE_BODY_FILE is a markdown file used to create the issue. The # in that file will be replaced with a link to the PR and display the PR#. That link will look like this...  
+The issue this app will create can be configured by setting the `ISSUE_TITLE`, and `ISSUE_BODY_FILE`. The `ISSUE_BODY_FILE` is a markdown file used to create the issue. The # in that file will be replaced with a link to the PR and display the PR#. That link will look like this...  
 [#19](https://github.com/robandpdx-volcano/superbigmono/pull/19)
+
+The slack notification can be configured by setting the `SLACK_MESSAGE_FILE`. There are some dynamic replacements in this file that occur before the message is sent:
+ - `#pr` is replaced with the url to the pull request
+ - `#l` is replaced with the label configured in `EMERGENCY_LABEL`
+ - `#i` is replaced with the url to the issue created, if issue creation is enabled
 ## Environment setup
 ### Create Bot User
 If you want the app to merge the emergency PR, and you have "Require status checks to pass before merging" in your branch protection, you will need to give the bot user `owner` permissions on the Org or repo.
