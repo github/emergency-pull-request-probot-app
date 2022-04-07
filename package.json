@@ -1,5 +1,5 @@
 {
-  "name": "***REMOVED***-emergency-landing",
+  "name": "emergency-pull-request-probot-app",
   "version": "1.0.0",
   "private": true,
   "description": "GitHub App for emergency pull requests",
@@ -14,7 +14,7 @@
     "axios": "^0.26.0",
     "probot": "^11.0.1"
   },
-  "repository": "githubcustomers:***REMOVED***-emergency-landing",
+  "repository": "github:emergency-pull-request-probot-app",
   "keywords": [],
   "author": "Rob Anderson (https://github.com/robandpdx)",
   "license": "MIT",
