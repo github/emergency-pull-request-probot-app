@@ -1,0 +1,20 @@
+version: 1
+ownership:
+- name: emergency-pull-request-probot-app
+  description: Bypass approval and checks in order to merge an emergency change to the main branch with audit controls
+  kind: code
+  maintainer: robandpdx
+  team: github/ps-amer
+  exec_sponsor: naval-gupta
+  repo: https://github.com/github/emergency-pull-request-probot-app
+  sev1:
+    issue: https://github.com/github/emergency-pull-request-probot-app/issues 
+    tta: '1 business day'
+  sev2:
+    issue: https://github.com/github/emergency-pull-request-probot-app/issues 
+    tta: '5 business days'
+  sev3:
+    issue: https://github.com/github/emergency-pull-request-probot-app/issues 
+    slack: sre-ops
+    tta: '7 business days'
+  qos: experimental
