@@ -18,3 +18,4 @@ ownership:
     slack: sre-ops
     tta: '7 business days'
   qos: experimental
+  tier: 3
