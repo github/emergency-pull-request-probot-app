@@ -4,12 +4,12 @@ This project is a probot app deploying to [AWS Lambda](https://aws.amazon.com/la
 
 The app listens for [Pull Request events](https://docs.github.com/en/developers/webhooks-and-events/events/github-event-types#pullrequestevent) where action=`labeled` and can do 4 things:
 1. Approve an emergency PR
-1. Create an issue to audit the emergency PR
 1. Merge the emergency PR, bypassing approvals and checks
+1. Create an issue to audit the emergency PR
 1. Send notification via slack
 
 Each of the above can be toggled on or off using the following environment variables which are meant to be self explanatory:
-`APPROVE_PR, CREATE_ISSUE, MERGE_PR, SLACK_NOTIFY`
+`APPROVE_PR, MERGE_PR, CREATE_ISSUE, SLACK_NOTIFY`
 Setting each of the above to `true` will enable the feature. Any other value will disable the feature.
 
 To configure the emergency label this app is looking for, set `EMERGENCY_LABEL` env var.
