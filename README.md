@@ -1,6 +1,6 @@
 # Emergency PR GitHub App
 
-This repository is a probot app deploying to [AWS Lambda](https://aws.amazon.com/lambda/) using [aws sam](https://aws.amazon.com/serverless/sam/). The purpose of this app is to provide a way for developers to bypass approval and checks in order to merge an emergency change to the main branch. There is an issue created for audit purposes.
+This project is a probot app deploying to [AWS Lambda](https://aws.amazon.com/lambda/) using [aws sam](https://aws.amazon.com/serverless/sam/). The purpose of this app is to provide a way for developers to bypass approval and checks in order to merge an emergency change to the protected main branch while ensuring that this bypass doesn't go unnoticed by creating an issue and/or slack notification.
 
 The app listens for [Pull Request events](https://docs.github.com/en/developers/webhooks-and-events/events/github-event-types#pullrequestevent) where action=`labeled` and can do 4 things:
 1. Approve an emergency PR
