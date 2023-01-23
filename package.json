@@ -12,7 +12,7 @@
     "@probot/adapter-aws-lambda-serverless": "^3.0.2",
     "@slack/web-api": "^6.8.0",
     "axios": "^1.2.3",
-    "probot": "^12.2.9"
+    "probot": "^12.3.0"
   },
   "repository": "github:emergency-pull-request-probot-app",
   "keywords": [],
