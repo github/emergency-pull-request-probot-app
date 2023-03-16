@@ -30,7 +30,7 @@
 		}
 	},
 
-	"postCreateCommand": "npm install && npm install -g mocha nyc",
+	"postCreateCommand": "npm install && npm install -g mocha nyc uvu",
 
 	"remoteUser": "node",
 

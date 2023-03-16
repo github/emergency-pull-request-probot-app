@@ -6,7 +6,7 @@
   "main": "app.js",
   "scripts": {
     "start": "probot run ./app.js",
-    "test": "nyc --reporter=lcov --reporter=cobertura --reporter=text --reporter=text-summary mocha "
+    "test": "nyc --reporter=lcov --reporter=cobertura --reporter=text --reporter=text-summary uvu"
   },
   "dependencies": {
     "@probot/adapter-aws-lambda-serverless": "^3.0.2",
