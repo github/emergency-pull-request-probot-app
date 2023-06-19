@@ -23,5 +23,5 @@ jobs:
     - run: npm test
     - uses: tintef/nyc-reporter-action@0.2.5
       with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
         SKIP_COVERAGE_FOLDER: true
