@@ -10,6 +10,7 @@ const {
 } = require("@probot/adapter-aws-lambda-serverless");
 
 const payload = {
+  loadName: "payload",
   name: "pull_request",
   id: "1",
   payload: {
@@ -19,7 +20,7 @@ const payload = {
     },
     repository: {
       owner: {
-        login: "probot",
+        login: "robandpdx",
       },
       name: "superbigmono",
       url: "https://api.github.com/repos/robandpdx/superbigmono"
@@ -34,6 +35,7 @@ const payload = {
 }
 
 const payloadUnlabeled = {
+  loadName: "payloadUnlabeled",
   name: "pull_request",
   id: "1",
   payload: {
@@ -42,13 +44,21 @@ const payloadUnlabeled = {
       name: "emergency"
     },
     pull_request: {
+      number: 1,
       issue_url: "https://api.github.com/repos/robandpdx/superbigmono/issues/1",
       html_url: "https://github.com/robandpdx/superbigmono/pull/1",
+    },
+    repository: {
+      owner: {
+        login: "robandpdx",
+      },
+      name: "superbigmono"
     },
   },
 }
 
 const payloadIssueUnlabeled = {
+  loadName: "payloadIssueUnlabeled",
   name: "issues",
   id: "1",
   payload: {
@@ -60,23 +70,41 @@ const payloadIssueUnlabeled = {
       url: "https://api.github.com/repos/robandpdx/superbigmono/issues/1",
       html_url: "https://github.com/robandpdx/superbigmono/pull/1",
     },
+    pull_request: {
+      number: 1,
+    },
+    repository: {
+      owner: {
+        login: "robandpdx",
+      },
+      name: "superbigmono"
+    },
   },
 }
 
 const payloadPrOpened = {
+  loadName: "payloadPrOpened",
   name: "pull_request",
   id: "1",
   payload: {
     action: "opened",
     pull_request: {
+      number: 1,
       body: "We need an Emergency landing - this bug is critical!",
       issue_url: "https://api.github.com/repos/robandpdx/superbigmono/issues/1",
       html_url: "https://github.com/robandpdx/superbigmono/pull/1",
-    }
+    },
+    repository: {
+      owner: {
+        login: "robandpdx",
+      },
+      name: "superbigmono"
+    },
   }
 }
 
 const payloadPrComment = {
+  loadName: "payloadPrComment",
   name: "issue_comment",
   id: "1",
   payload: {
@@ -89,7 +117,16 @@ const payloadPrComment = {
     },
     comment: {
       body: "We need an Emergency landing - this bug is critical!"
-    }
+    },
+    pull_request: {
+      number: 1,
+    },
+    repository: {
+      owner: {
+        login: "robandpdx",
+      },
+      name: "superbigmono"
+    },
   }
 }
 
@@ -390,7 +427,7 @@ test("recieves pull_request.labeled event, approve (fails), create issue, merge"
     await probot.receive(payload);
   } catch (err) {
     assert.equal(mock.pendingMocks(), []);
-    assert.equal(err.errors[0][0].message, "something awful happened");
+    assert.equal(err.errors[0][0].message, "request to https://api.github.com/repos/robandpdx/superbigmono/pulls/1/reviews failed, reason: something awful happened");
     assert.equal(err.errors[0].length, 1);
     return;
   }
@@ -427,7 +464,7 @@ test("recieves pull_request.labeled event, approve, create issue (fails), merge"
     await probot.receive(payload);
   } catch (err) {
     assert.equal(mock.pendingMocks(), []);
-    assert.equal(err.errors[0][0].message, "something awful happened");
+    assert.equal(err.errors[0][0].message, "request to https://api.github.com/repos/robandpdx/superbigmono/issues failed, reason: something awful happened");
     assert.equal(err.errors[0].length, 1);
     return;
   }
@@ -464,7 +501,7 @@ test("recieves pull_request.labeled event, approve, create issue, merge (fails)"
     await probot.receive(payload);
   } catch (err) {
     assert.equal(mock.pendingMocks(), []);
-    assert.equal(err.errors[0][0].message, "something awful happened");
+    assert.equal(err.errors[0][0].message, "request to https://api.github.com/repos/robandpdx/superbigmono/pulls/1/merge failed, reason: something awful happened");
     assert.equal(err.errors[0].length, 1);
     return;
   }
@@ -475,9 +512,9 @@ test("recieves pull_request.unlabeled event, reapply emergency label", async fun
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
   // mock the request to reapply the emergency label
   const mock = nock("https://api.github.com")
-    .patch("/repos/robandpdx/superbigmono/issues/1",
+    .post("/repos/robandpdx/superbigmono/issues/1/labels",
       (requestBody) => {
-        assert.equal(requestBody.labels[0], "emergency");
+        assert.equal(requestBody[0], "emergency");
         return true;
       }
     )
@@ -488,13 +525,13 @@ test("recieves pull_request.unlabeled event, reapply emergency label", async fun
 });
 
 // This test will fail to reapply the emergency label to a PR
-test("recieves pull_request.unlabeled event, reapply emergency label", async function () {
+test("recieves pull_request.unlabeled event, fail to reapply emergency label", async function () {
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
   // mock the request to reapply the emergency label
   const mock = nock("https://api.github.com")
-    .patch("/repos/robandpdx/superbigmono/issues/1",
+    .post("/repos/robandpdx/superbigmono/issues/1/labels",
       (requestBody) => {
-        assert.equal(requestBody.labels[0], "emergency");
+        assert.equal(requestBody[0], "emergency");
         return true;
       }
     )
@@ -504,7 +541,7 @@ test("recieves pull_request.unlabeled event, reapply emergency label", async fun
     await probot.receive(payloadUnlabeled);
   } catch (err) {
     assert.equal(mock.pendingMocks(), []);
-    assert.equal(err.errors[0][0].message, "something awful happened");
+    assert.equal(err.errors[0][0].message, "request to https://api.github.com/repos/robandpdx/superbigmono/issues/1/labels failed, reason: something awful happened");
     assert.equal(err.errors[0].length, 1);
     return;
   }
@@ -519,13 +556,13 @@ test("recieves pull_request.unlabeled event, dont't emergency label", async func
 });
 
 // This test will reapply the emergency label to an issue
-test("recieves pull_request.unlabeled event, reapply emergency label", async function () {
+test("recieves issue.unlabeled event, reapply emergency label", async function () {
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
   // mock the request to reapply the emergency label
   const mock = nock("https://api.github.com")
-    .patch("/repos/robandpdx/superbigmono/issues/1",
+    .post("/repos/robandpdx/superbigmono/issues/1/labels",
       (requestBody) => {
-        assert.equal(requestBody.labels[0], "emergency");
+        assert.equal(requestBody[0], "emergency");
         return true;
       }
     )
@@ -536,13 +573,13 @@ test("recieves pull_request.unlabeled event, reapply emergency label", async fun
 });
 
 // This test will fail to reapply the emergency label to an issue
-test("recieves pull_request.unlabeled event, reapply emergency label", async function () {
+test("recieves issue.unlabeled event, fail to reapply emergency label", async function () {
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
   // mock the request to reapply the emergency label
   const mock = nock("https://api.github.com")
-    .patch("/repos/robandpdx/superbigmono/issues/1",
+    .post("/repos/robandpdx/superbigmono/issues/1/labels",
       (requestBody) => {
-        assert.equal(requestBody.labels[0], "emergency");
+        assert.equal(requestBody[0], "emergency");
         return true;
       }
     )
@@ -552,7 +589,7 @@ test("recieves pull_request.unlabeled event, reapply emergency label", async fun
     await probot.receive(payloadIssueUnlabeled);
   } catch (err) {
     assert.equal(mock.pendingMocks(), []);
-    assert.equal(err.errors[0][0].message, "something awful happened");
+    assert.equal(err.errors[0][0].message, "request to https://api.github.com/repos/robandpdx/superbigmono/issues/1/labels failed, reason: something awful happened");
     assert.equal(err.errors[0].length, 1);
     return;
   }
@@ -570,9 +607,9 @@ test("recieves pull_request.unlabeled event, dont't emergency label", async func
 test("recieves pull_request.opened event, applies emergency label", async function () {
   // mock the request to apply the emergency label
   const mock = nock("https://api.github.com")
-    .patch("/repos/robandpdx/superbigmono/issues/1",
+    .post("/repos/robandpdx/superbigmono/issues/1/labels",
       (requestBody) => {
-        assert.equal(requestBody.labels[0], "emergency");
+        assert.equal(requestBody[0], "emergency");
         return true;
       }
     )
@@ -586,9 +623,9 @@ test("recieves pull_request.opened event, applies emergency label", async functi
 test("recieves pull_request.opened event, fails to apply emergency label", async function () {
   // mock the request to apply the emergency label
   const mock = nock("https://api.github.com")
-    .patch("/repos/robandpdx/superbigmono/issues/1",
+    .post("/repos/robandpdx/superbigmono/issues/1/labels",
       (requestBody) => {
-        assert.equal(requestBody.labels[0], "emergency");
+        assert.equal(requestBody[0], "emergency");
         return true;
       }
     )
@@ -598,7 +635,7 @@ test("recieves pull_request.opened event, fails to apply emergency label", async
       await probot.receive(payloadPrOpened);
     } catch (err) {
       assert.equal(mock.pendingMocks(), []);
-      assert.equal(err.errors[0][0].message, "something awful happened");
+      assert.equal(err.errors[0][0].message, "request to https://api.github.com/repos/robandpdx/superbigmono/issues/1/labels failed, reason: something awful happened");
       assert.equal(err.errors[0].length, 1);
       return;
     }
@@ -610,13 +647,13 @@ test("recieves pull_request.unlabeled event, dont't emergency label", async func
   await probot.receive(payloadPrOpened);
 });
 
-// This test will apply the emrgency label based on the contents of a comment on the PR
-test("recieves pull_request.opened event, applies emergency label", async function () {
+// This test will apply the emergency label based on the contents of a comment on the PR
+test("recieves issue_comment.created event, applies emergency label", async function () {
   // mock the request to apply the emergency label
   const mock = nock("https://api.github.com")
-    .patch("/repos/robandpdx/superbigmono/issues/1",
+    .post("/repos/robandpdx/superbigmono/issues/1/labels",
       (requestBody) => {
-        assert.equal(requestBody.labels[0], "emergency");
+        assert.equal(requestBody[0], "emergency");
         return true;
       }
     )
@@ -626,13 +663,13 @@ test("recieves pull_request.opened event, applies emergency label", async functi
   assert.equal(mock.pendingMocks(), []);
 });
 
-// This test will fail to apply the emrgency label based on the contents of a comment on the PR
-test("recieves pull_request.opened event, failes to apply emergency label", async function () {
+// This test will fail to apply the emergency label based on the contents of a comment on the PR
+test("recieves issue_comment.created event, failes to apply emergency label", async function () {
   // mock the request to apply the emergency label
   const mock = nock("https://api.github.com")
-    .patch("/repos/robandpdx/superbigmono/issues/1",
+    .post("/repos/robandpdx/superbigmono/issues/1/labels",
       (requestBody) => {
-        assert.equal(requestBody.labels[0], "emergency");
+        assert.equal(requestBody[0], "emergency");
         return true;
       }
     )
@@ -642,14 +679,14 @@ test("recieves pull_request.opened event, failes to apply emergency label", asyn
       await probot.receive(payloadPrComment);
     } catch (err) {
       assert.equal(mock.pendingMocks(), []);
-      assert.equal(err.errors[0][0].message, "something awful happened");
+      assert.equal(err.errors[0][0].message, "request to https://api.github.com/repos/robandpdx/superbigmono/issues/1/labels failed, reason: something awful happened");
       assert.equal(err.errors[0].length, 1);
       return;
     }
 });
 
 // This test will not reapply the emergency label because the TRIGGER_STRING is not found
-test("recieves pull_request.unlabeled event, dont't emergency label", async function () {
+test("recieves issue_comment.created event, dont't emergency label", async function () {
   delete process.env.TRIGGER_STRING;
   await probot.receive(payloadPrComment);
 });

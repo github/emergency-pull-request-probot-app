@@ -23,11 +23,12 @@ module.exports = (app) => {
       // Approve PR, if configured to do so
       if (process.env.APPROVE_PR == 'true') {
         console.log(`Adding review to PR`);
-        await axios({
-          method: 'post',
-          url: `${context.payload.pull_request.url}/reviews`,
-          auth: auth,
-          data: { "event": "APPROVE" }
+        await context.octokit.rest.pulls.createReview({
+          owner: context.payload.repository.owner.login,
+          repo: context.payload.repository.name,
+          pull_number: context.payload.pull_request.number,
+          body: "Approved by emergency PR bot",
+          event: "APPROVE"
         }).then(response => {
           console.log(`Review added`);
         }).catch(error => {
@@ -46,16 +47,13 @@ module.exports = (app) => {
         }
         let issueBody = fs.readFileSync(process.env.ISSUE_BODY_FILE, 'utf8');
         issueBody = issueBody.replace('#',context.payload.pull_request.html_url);
-        await axios({
-          method: 'post',
-          url: `${context.payload.repository.url}/issues`,
-          auth: auth,
-          data: { 
-            "title": process.env.ISSUE_TITLE,
-            "body": issueBody,
-            "labels": [emergencyLabel],
-            ...assignees
-          }
+        await context.octokit.rest.issues.create({
+          owner: context.payload.repository.owner.login,
+          repo: context.payload.repository.name,
+          title: process.env.ISSUE_TITLE,
+          body: issueBody,
+          labels: [emergencyLabel],
+          ...assignees
         }).then(response => {
           console.log(`Issue created`)
           newIssue = response.data.html_url;
@@ -69,10 +67,11 @@ module.exports = (app) => {
       // Merge PR, if configured to do so
       if (process.env.MERGE_PR == 'true') {
         console.log(`Merging PR`);
-        await axios({
-          method: 'put',
-          url: `${context.payload.pull_request.url}/merge`,
-          auth: auth
+        await context.octokit.rest.pulls.merge({
+          owner: context.payload.repository.owner.login,
+          repo: context.payload.repository.name,
+          pull_number: context.payload.pull_request.number,
+          //merge_method: "squash"
         }).then(response => {
           console.log(`PR merged`);
         }).catch(error => {
@@ -135,13 +134,11 @@ module.exports = (app) => {
       let errorsArray = [];
 
       // Add emergency label
-      await axios({
-        method: 'patch',
-        url: context.payload.pull_request.issue_url,
-        auth: auth,
-        data: { 
-          "labels": [emergencyLabel]
-        }
+      await context.octokit.rest.issues.addLabels({
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
+        issue_number: context.payload.pull_request.number,
+        labels: [emergencyLabel]
       }).then(response => {
         console.log(`${emergencyLabel} label reapplied to PR: ${context.payload.pull_request.html_url}`);
       }).catch(error => {
@@ -167,13 +164,11 @@ module.exports = (app) => {
       let errorsArray = [];
 
       // Add emergency label
-      await axios({
-        method: 'patch',
-        url: context.payload.issue.url,
-        auth: auth,
-        data: { 
-          "labels": [emergencyLabel]
-        }
+      await context.octokit.rest.issues.addLabels({
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
+        issue_number: context.payload.pull_request.number,
+        labels: [emergencyLabel]
       }).then(response => {
         console.log(`${emergencyLabel} label reapplied to PR: ${context.payload.issue.html_url}`);
       }).catch(error => {
@@ -195,13 +190,11 @@ module.exports = (app) => {
     if (context.payload.pull_request.body.toLocaleLowerCase().includes(process.env.TRIGGER_STRING)) {
       // Found the trigger string, so add the emergency label to trigger the other stuff...
       let errorsArray = [];
-      await axios({
-        method: 'patch',
-        url: context.payload.pull_request.issue_url,
-        auth: auth,
-        data: { 
-          "labels": [emergencyLabel]
-        }
+      await context.octokit.rest.issues.addLabels({
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
+        issue_number: context.payload.pull_request.number,
+        labels: [emergencyLabel]
       }).then(response => {
         console.log(`${emergencyLabel} label applied to PR: ${context.payload.pull_request.html_url}`);
         newIssue = response.data.html_url;
@@ -224,13 +217,11 @@ module.exports = (app) => {
     if (context.payload.issue.pull_request && context.payload.comment.body.toLocaleLowerCase().includes(process.env.TRIGGER_STRING)) {
       // This is a comment on a PR and we found the trigger string, so add the emergency label to trigger the other stuff...
       let errorsArray = [];
-      await axios({
-        method: 'patch',
-        url: context.payload.issue.url,
-        auth: auth,
-        data: { 
-          "labels": [emergencyLabel]
-        }
+      await context.octokit.rest.issues.addLabels({
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
+        issue_number: context.payload.pull_request.number,
+        labels: [emergencyLabel]
       }).then(response => {
         console.log(`${emergencyLabel} label applied to PR: ${context.payload.issue.pull_request.html_url}`);
         newIssue = response.data.html_url;

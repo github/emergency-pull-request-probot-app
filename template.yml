@@ -12,12 +12,6 @@ Parameters:
   githubPrivateKey:
     Description: The base64 encoded private key of your GitHub app
     Type: String
-  githubUser:
-    Description: The user with admin access
-    Type: String
-  githubPat:
-    Description: The PAT of the user with admin access
-    Type: String
   emergencyLabel:
     Description: The label to use for emergency issues
     Type: String
@@ -101,8 +95,6 @@ Resources:
           APP_ID: !Ref githubAppId
           WEBHOOK_SECRET: !Ref githubWebhookSecret
           PRIVATE_KEY: !Ref githubPrivateKey
-          GITHUB_USER: !Ref githubUser
-          GITHUB_PAT: !Ref githubPat
           EMERGENCY_LABEL: !Ref emergencyLabel
           ISSUE_TITLE: !Ref issueTitle
           ISSUE_BODY_FILE: !Ref issueBodyFile
