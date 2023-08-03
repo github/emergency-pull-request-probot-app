@@ -22,12 +22,6 @@ The slack notification can be configured by setting the `SLACK_MESSAGE_FILE`. Th
  - `#l` is replaced with the label configured in `EMERGENCY_LABEL`
  - `#i` is replaced with the url to the issue created, if issue creation is enabled
 ## Environment setup
-### Create Bot User
-If you want the app to merge the emergency PR, and you have "Require status checks to pass before merging" in your branch protection, you will need to give the bot user `owner` permissions on the Org or repo.
-
-If you do not have "Require status checks to pass before merging" you can make the bot user a standard user. If you also have more than 1 approval required you will need to configure the bot user in your branch protection section "Allow specified actors to bypass pull request requirements" in order to allow merging.
-
-Generate a PAT for the bot user with repo scope. Configure SSO for the PAT, authorizing the PAT for your org.
 ### Create GitHub App
 Create the GH App in your org or repo. Define a client secrent. Generate a private key.
 #### Grant repository permissions
@@ -37,6 +31,9 @@ Set Pull Requests access to `Read & write`
 Check `Issues`  
 Check `Issue comment`  
 Check `Pull request`
+
+#### Allow app to bypass branch protection
+If you want the app to merge the emergency PR, and you have "Require status checks to pass before merging" in your branch protection, you will need to allow the app to bypass branch protection.
 
 Once you have the bot user setup and the GitHub app configured you are ready to deploy!
 
