@@ -49,7 +49,7 @@ Once you have the bot user setup and the GitHub app configured you are ready to 
 Get the following details about your GitHub app:
 - `APP_ID`
 - `WEBHOOK_SECRET`
-- `PRIVATE_KEY`
+- `PRIVATE_KEY` (base64 encoded)
 
 You will need to base64 encode the private key.
 
