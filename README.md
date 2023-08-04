@@ -34,7 +34,9 @@ Check `Issue comment`
 Check `Pull request`
 
 #### Allow app to bypass branch protection
-If you want the app to merge the emergency PR, and you have "Require status checks to pass before merging" in your branch protection, you will need to allow the app to bypass branch protection.
+If you want the app to merge the emergency PR, and have configured "Require status checks to pass before merging" in your branch protection rule, you will need to allow the app to bypass branch protection.
+
+If you want the app to merge the emergency PR, and have configured "Restrict who can push to matching branches" in your branch projection rule, you will need to allow the app push access to the matching branches.
 
 Once you have the bot user setup and the GitHub app configured you are ready to deploy!
 
