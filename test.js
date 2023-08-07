@@ -69,8 +69,6 @@ const payloadIssueUnlabeled = {
     issue: {
       url: "https://api.github.com/repos/robandpdx/superbigmono/issues/1",
       html_url: "https://github.com/robandpdx/superbigmono/pull/1",
-    },
-    pull_request: {
       number: 1,
     },
     repository: {
@@ -549,7 +547,7 @@ test("recieves pull_request.unlabeled event, fail to reapply emergency label", a
 });
 
 // This test will not reapply the emergency label to a PR
-test("recieves pull_request.unlabeled event, dont't emergency label", async function () {
+test("recieves pull_request.unlabeled event, don't emergency label", async function () {
   delete process.env.EMERGENCY_LABEL_PERMANENT;
   process.env.EMERGENCY_LABEL_PERMANENT = 'false';
   await probot.receive(payloadUnlabeled);
