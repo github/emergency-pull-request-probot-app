@@ -167,7 +167,7 @@ module.exports = (app) => {
       await context.octokit.rest.issues.addLabels({
         owner: context.payload.repository.owner.login,
         repo: context.payload.repository.name,
-        issue_number: context.payload.pull_request.number,
+        issue_number: context.payload.issue.number,
         labels: [emergencyLabel]
       }).then(response => {
         console.log(`${emergencyLabel} label reapplied to PR: ${context.payload.issue.html_url}`);
