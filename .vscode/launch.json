@@ -26,8 +26,8 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Probot",
-            "runtimeExecutable": "probot",
-            "runtimeArgs": ["run", "./app.js"],
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["start"],
             "console": "integratedTerminal",
             "cwd": "${workspaceRoot}/",
         }
