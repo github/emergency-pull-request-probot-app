@@ -5,6 +5,7 @@ ownership:
   kind: code
   maintainer: robandpdx
   team: github/ps-amer
+  team_slack: services-delivery
   exec_sponsor: naval-gupta
   repo: https://github.com/github/emergency-pull-request-probot-app
   sev1:
@@ -15,7 +16,7 @@ ownership:
     tta: '5 business days'
   sev3:
     issue: https://github.com/github/emergency-pull-request-probot-app/issues 
-    slack: sre-ops
+    slack: services-delivery
     tta: '7 business days'
   qos: experimental
   tier: 3
