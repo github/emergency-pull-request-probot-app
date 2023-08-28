@@ -1,4 +1,3 @@
-const axios = require('axios');
 const fs = require('fs')
 const auth = {
   username: process.env.GITHUB_USER,
