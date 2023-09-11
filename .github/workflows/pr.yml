@@ -20,7 +20,6 @@ jobs:
         node-version: 16
         check-latest: true
         cache: npm
-    - run: npm install -g npm
     - run: npm ci
     - run: npm test
     - uses: tintef/nyc-reporter-action@0.2.5
