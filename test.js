@@ -111,7 +111,8 @@ const payloadPrComment = {
       url:  "https://api.github.com/repos/robandpdx/superbigmono/issues/1",
       pull_request: {
         html_url: "https://github.com/robandpdx/superbigmono/pull/1"
-      }
+      },
+      number: 1,
     },
     comment: {
       body: "We need an Emergency landing - this bug is critical!"
