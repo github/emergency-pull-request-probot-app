@@ -75,6 +75,9 @@ Parameters:
     Description: The string value in a PR or Issue title that triggers appling the emegency label
     Default: emergency landing
     Type: String
+  authorizedTeam:
+    Description: The team who's members are authorized to use this app
+    Type: String
 
 Resources:
   webhooks:
@@ -108,6 +111,7 @@ Resources:
           SLACK_MESSAGE_FILE: !Ref slackMessageFile
           EMERGENCY_LABEL_PERMANENT: !Ref emergencyLabelPermanent
           TRIGGER_STRING: !Ref triggerString
+          AUTHORIZED_TEAM: !Ref authorizedTeam
 
 Outputs:
   WebhooksUrl:

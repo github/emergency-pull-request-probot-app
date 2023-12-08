@@ -9,8 +9,8 @@ const {
   ProbotOctokit,
 } = require("@probot/adapter-aws-lambda-serverless");
 
-const payload = {
-  loadName: "payload",
+const payloadPrLabeled = {
+  loadName: "payloadPrLabeled",
   name: "pull_request",
   id: "1",
   payload: {
@@ -31,6 +31,43 @@ const payload = {
       html_url: "https://github.com/robandpdx/superbigmono/pull/1",
       merged: false
     },
+    organization: {
+      login: "robandpdx",
+    },
+    sender: {
+      login: "robandpdx",
+    }
+  },
+}
+
+const payloadPrLabeledByBot = {
+  loadName: "payloadPrLabeled",
+  name: "pull_request",
+  id: "1",
+  payload: {
+    action: "labeled",
+    label: {
+      name: "emergency"
+    },
+    repository: {
+      owner: {
+        login: "robandpdx",
+      },
+      name: "superbigmono",
+      url: "https://api.github.com/repos/robandpdx/superbigmono"
+    },
+    pull_request: {
+      number: 1,
+      url: "https://api.github.com/repos/robandpdx/superbigmono/pulls/1",
+      html_url: "https://github.com/robandpdx/superbigmono/pull/1",
+      merged: false
+    },
+    organization: {
+      login: "robandpdx",
+    },
+    sender: {
+      login: "emergency-pr[bot]",
+    }
   },
 }
 
@@ -54,6 +91,35 @@ const payloadUnlabeled = {
       },
       name: "superbigmono"
     },
+    sender: {
+      login: "robandpdx",
+    }
+  },
+}
+
+const payloadUnlabeledByBot = {
+  loadName: "payloadUnlabeledByBoy",
+  name: "pull_request",
+  id: "1",
+  payload: {
+    action: "unlabeled",
+    label: {
+      name: "emergency"
+    },
+    pull_request: {
+      number: 1,
+      issue_url: "https://api.github.com/repos/robandpdx/superbigmono/issues/1",
+      html_url: "https://github.com/robandpdx/superbigmono/pull/1",
+    },
+    repository: {
+      owner: {
+        login: "robandpdx",
+      },
+      name: "superbigmono"
+    },
+    sender: {
+      login: "emergency-pr[bot]",
+    }
   },
 }
 
@@ -77,6 +143,35 @@ const payloadIssueUnlabeled = {
       },
       name: "superbigmono"
     },
+    sender: {
+      login: "robandpdx",
+    }
+  },
+}
+
+const payloadIssueUnlabeledByBot = {
+  loadName: "payloadIssueUnlabeled",
+  name: "issues",
+  id: "1",
+  payload: {
+    action: "unlabeled",
+    label: {
+      name: "emergency"
+    },
+    issue: {
+      url: "https://api.github.com/repos/robandpdx/superbigmono/issues/1",
+      html_url: "https://github.com/robandpdx/superbigmono/pull/1",
+      number: 1,
+    },
+    repository: {
+      owner: {
+        login: "robandpdx",
+      },
+      name: "superbigmono"
+    },
+    sender: {
+      login: "emergency-pr[bot]",
+    }
   },
 }
 
@@ -98,6 +193,12 @@ const payloadPrOpened = {
       },
       name: "superbigmono"
     },
+    organization: {
+      login: "robandpdx",
+    },
+    sender: {
+      login: "robandpdx",
+    }
   }
 }
 
@@ -126,7 +227,25 @@ const payloadPrComment = {
       },
       name: "superbigmono"
     },
+    organization: {
+      login: "robandpdx",
+    },
+    sender: {
+      login: "robandpdx",
+    }
   }
+}
+
+const payloadMembershipResponse = {
+  "url": "https://api.github.com/teams/1/memberships/robandpdx",
+  "role": "maintainer",
+  "state": "active"
+}
+
+const payloadNonMembershipResponse = {
+  "url": "https://api.github.com/teams/1/memberships/robandpdx",
+  "role": "member",
+  "state": "inactive"
 }
 
 const app = require("./app");
@@ -165,6 +284,7 @@ test.after.each(() => {
   delete process.env.SLACK_NOTIFY;
   delete process.env.SLACK_MESSAGE_FILE;
   delete process.env.EMERGENCY_LABEL_PERMANENT;
+  delete process.env.AUTHORIZED_TEAM;
 });
 
 // This test sends a payload that is not an emergency label
@@ -177,6 +297,12 @@ test("recieves pull_request.labeled event, does nothing because not emergency la
       label: {
         name: "other"
       },
+      organization: {
+        login: 'robandpdx'
+      },
+      sender: { 
+        login: 'robandpdx'
+      }
     },
   });
 });
@@ -239,7 +365,7 @@ test("recieves pull_request.labeled event, approve, create issue, merge, slack n
       }
     });
 
-  await probot.receive(payload);
+  await probot.receive(payloadPrLabeled);
   assert.equal(mock.pendingMocks(), []);
   assert.equal(mockSlack.pendingMocks(), []);
 });
@@ -263,7 +389,7 @@ test("recieves pull_request.labeled event, approve PR", async function () {
     )
     .reply(200);
 
-  await probot.receive(payload);
+  await probot.receive(payloadPrLabeled);
   assert.equal(mock.pendingMocks(), []);
 });
 
@@ -284,7 +410,7 @@ test("recieves pull_request.labeled event, create issue", async function () {
     )
     .reply(200);
 
-  await probot.receive(payload);
+  await probot.receive(payloadPrLabeled);
   assert.equal(mock.pendingMocks(), []);
 });
 
@@ -306,7 +432,7 @@ test("recieves pull_request.labeled event, create issue no assignees", async fun
     )
     .reply(200);
 
-  await probot.receive(payload);
+  await probot.receive(payloadPrLabeled);
   assert.equal(mock.pendingMocks(), []);
 });
 
@@ -321,7 +447,107 @@ test("recieves pull_request.labeled event, merge the PR", async function () {
   const mock = nock("https://api.github.com")
     .put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
 
-  await probot.receive(payload);
+  await probot.receive(payloadPrLabeled);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will merge the PR because the user is a member of the emergency team
+test("recieves pull_request.labeled event, check team membership, merge the PR", async function () {
+  process.env.APPROVE_PR = 'false';
+  process.env.CREATE_ISSUE = 'false';
+  process.env.MERGE_PR = 'true';
+  process.env.SLACK_NOTIFY = 'false';
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+  
+  // mock the request to add approval to the pr
+  const mock = nock("https://api.github.com")
+    .put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
+
+  // mock the request to check if the user is a member of the emergency team
+  mock.get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+  .reply(200, payloadMembershipResponse);
+
+  await probot.receive(payloadPrLabeled);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will merge the PR because label was applied by a bot
+test("recieves pull_request.labeled event from a bot, merge the PR", async function () {
+  process.env.APPROVE_PR = 'false';
+  process.env.CREATE_ISSUE = 'false';
+  process.env.MERGE_PR = 'true';
+  process.env.SLACK_NOTIFY = 'false';
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+  
+  // mock the request to add approval to the pr
+  const mock = nock("https://api.github.com")
+    .put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
+
+  await probot.receive(payloadPrLabeledByBot);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will not merge the PR because the user is not a member of the emergency team
+test("recieves pull_request.labeled event, check non team membership, do not merge the PR", async function () {
+  process.env.APPROVE_PR = 'false';
+  process.env.CREATE_ISSUE = 'false';
+  process.env.MERGE_PR = 'true';
+  process.env.SLACK_NOTIFY = 'false';
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+  
+  // mock the request to check if the user is a member of the emergency team
+  const mock = nock("https://api.github.com")
+    .get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+      .reply(200, payloadNonMembershipResponse);
+
+  // mock the request to create the issue comment
+  mock.post("/repos/robandpdx/superbigmono/issues/1/comments",
+    (requestBody) => {
+      assert.equal(requestBody.body, "@robandpdx is not authorized to apply the emergency label.");
+      return true;
+    }
+  ).reply(200);
+
+  // mock the request to delete the label
+  mock.delete("/repos/robandpdx/superbigmono/issues/1/labels/emergency",
+    (requestBody) => {
+      return true;
+    }
+  ).reply(200);
+
+  await probot.receive(payloadPrLabeled);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will not merge the PR because non team membership
+test("recieves pull_request.labeled event, non team membership, do not merge the PR", async function () {
+  process.env.APPROVE_PR = 'false';
+  process.env.CREATE_ISSUE = 'false';
+  process.env.MERGE_PR = 'true';
+  process.env.SLACK_NOTIFY = 'false';
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+  
+  // mock the request to check if the user is a member of the emergency team
+  const mock = nock("https://api.github.com")
+    .get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+      .reply(404);
+
+  // mock the request to create the issue comment
+  mock.post("/repos/robandpdx/superbigmono/issues/1/comments",
+    (requestBody) => {
+      assert.equal(requestBody.body, "@robandpdx is not authorized to apply the emergency label.");
+      return true;
+    }
+  ).reply(200);
+
+  // mock the request to delete the label
+  mock.delete("/repos/robandpdx/superbigmono/issues/1/labels/emergency",
+    (requestBody) => {
+      return true;
+    }
+  ).reply(200);
+
+  await probot.receive(payloadPrLabeled);
   assert.equal(mock.pendingMocks(), []);
 });
 
@@ -362,7 +588,7 @@ test("recieves pull_request.labeled event, slack notify", async function () {
       }
     });
 
-  await probot.receive(payload);
+  await probot.receive(payloadPrLabeled);
   assert.equal(mockSlack.pendingMocks(), []);
 });
 
@@ -386,7 +612,7 @@ test("recieves pull_request.labeled event, slack notify (fail)", async function 
     ).reply(500);
 
     try {
-      await probot.receive(payload);
+      await probot.receive(payloadPrLabeled);
     } catch (err) {
       assert.equal(mockSlack.pendingMocks(), []);
       assert.equal(err.errors[0][0].message, "An HTTP protocol error occurred: statusCode = 500");
@@ -423,7 +649,7 @@ test("recieves pull_request.labeled event, approve (fails), create issue, merge"
   mock.put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
 
   try {
-    await probot.receive(payload);
+    await probot.receive(payloadPrLabeled);
   } catch (err) {
     assert.equal(mock.pendingMocks(), []);
     assert.equal(err.errors[0][0].message, "request to https://api.github.com/repos/robandpdx/superbigmono/pulls/1/reviews failed, reason: something awful happened");
@@ -460,7 +686,7 @@ test("recieves pull_request.labeled event, approve, create issue (fails), merge"
   mock.put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
 
   try {
-    await probot.receive(payload);
+    await probot.receive(payloadPrLabeled);
   } catch (err) {
     assert.equal(mock.pendingMocks(), []);
     assert.equal(err.errors[0][0].message, "request to https://api.github.com/repos/robandpdx/superbigmono/issues failed, reason: something awful happened");
@@ -497,7 +723,7 @@ test("recieves pull_request.labeled event, approve, create issue, merge (fails)"
   mock.put("/repos/robandpdx/superbigmono/pulls/1/merge").replyWithError('something awful happened')
 
   try {
-    await probot.receive(payload);
+    await probot.receive(payloadPrLabeled);
   } catch (err) {
     assert.equal(mock.pendingMocks(), []);
     assert.equal(err.errors[0][0].message, "request to https://api.github.com/repos/robandpdx/superbigmono/pulls/1/merge failed, reason: something awful happened");
@@ -521,6 +747,13 @@ test("recieves pull_request.unlabeled event, reapply emergency label", async fun
 
   await probot.receive(payloadUnlabeled);
   assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will not reapply the emergency label to a PR if removed by bot
+test("recieves pull_request.unlabeled event from bot user, do not reapply emergency label", async function () {
+  process.env.EMERGENCY_LABEL_PERMANENT = 'true';
+
+  await probot.receive(payloadUnlabeledByBot);
 });
 
 // This test will fail to reapply the emergency label to a PR
@@ -571,6 +804,13 @@ test("recieves issue.unlabeled event, reapply emergency label", async function (
   assert.equal(mock.pendingMocks(), []);
 });
 
+// This test will not reapply the emergency label to an issue if removed by bot
+test("recieves issue.unlabeled event from bot, do not reapply emergency label", async function () {
+  process.env.EMERGENCY_LABEL_PERMANENT = 'true';
+
+  await probot.receive(payloadIssueUnlabeledByBot);
+});
+
 // This test will fail to reapply the emergency label to an issue
 test("recieves issue.unlabeled event, fail to reapply emergency label", async function () {
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
@@ -618,6 +858,49 @@ test("recieves pull_request.opened event, applies emergency label", async functi
   assert.equal(mock.pendingMocks(), []);
 });
 
+// This test will apply the emergency label based on the PR contents checking team membership
+test("recieves pull_request.opened event, applies emergency label checking team membership", async function () {
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+
+  // mock the request to apply the emergency label
+  const mock = nock("https://api.github.com")
+    .post("/repos/robandpdx/superbigmono/issues/1/labels",
+      (requestBody) => {
+        assert.equal(requestBody[0], "emergency");
+        return true;
+      }
+    )
+    .reply(200);
+
+  // mock the request to check if the user is a member of the emergency team
+  mock.get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+  .reply(200, payloadMembershipResponse);
+
+  await probot.receive(payloadPrOpened);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will not apply the emergency label due to non team membership
+test("recieves pull_request.opened event, does not apply emergency label due to non team membership", async function () {
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+
+  // mock the request to apply the emergency label
+  const mock = nock("https://api.github.com")
+    .get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+      .reply(200, payloadNonMembershipResponse);
+
+  // mock the request to create the issue comment
+  mock.post("/repos/robandpdx/superbigmono/issues/1/comments",
+    (requestBody) => {
+      assert.equal(requestBody.body, "@robandpdx is not authorized to apply the emergency label.");
+      return true;
+    }
+  ).reply(200);
+
+  await probot.receive(payloadPrOpened);
+  assert.equal(mock.pendingMocks(), []);
+});
+
 // This test will fail to apply the emergency label based on the PR contents
 test("recieves pull_request.opened event, fails to apply emergency label", async function () {
   // mock the request to apply the emergency label
@@ -659,6 +942,92 @@ test("recieves issue_comment.created event, applies emergency label", async func
     .reply(200);
 
   await probot.receive(payloadPrComment);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will apply the emergency label based on the contents of a comment on the PR, checking team membership
+test("recieves issue_comment.created event, applies emergency label", async function () {
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+
+  // mock the request to apply the emergency label
+  const mock = nock("https://api.github.com")
+    .post("/repos/robandpdx/superbigmono/issues/1/labels",
+      (requestBody) => {
+        assert.equal(requestBody[0], "emergency");
+        return true;
+      }
+    )
+    .reply(200);
+
+  // mock the request to check if the user is a member of the emergency team
+  mock.get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+  .reply(200, payloadMembershipResponse);
+
+  await probot.receive(payloadPrComment);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will not apply the emergency label due to non team membership and comment
+test("recieves issue_comment.created event, does not apply emergency label due to non membership", async function () {
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+
+  // mock the request to apply the emergency label
+  const mock = nock("https://api.github.com")
+    .get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+      .reply(200, payloadNonMembershipResponse);
+
+  // mock the request to create the issue comment
+  mock.post("/repos/robandpdx/superbigmono/issues/1/comments",
+    (requestBody) => {
+      assert.equal(requestBody.body, "@robandpdx is not authorized to apply the emergency label.");
+      return true;
+    }
+  ).reply(200);
+
+  await probot.receive(payloadPrComment);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will not apply the emergency label due failed membership check
+test("recieves issue_comment.created event, does not apply emergency label due to failed membership check", async function () {
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+
+  // mock the request to apply the emergency label
+  const mock = nock("https://api.github.com")
+    .get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+      .reply(500);
+
+  try {
+    await probot.receive(payloadPrComment);
+  } catch (err) {
+    assert.equal(mock.pendingMocks(), []);
+    assert.equal(err.errors[0].message, "Error checking membership");
+  }
+});
+
+// This test will not apply the emergency label due to non team membership, fail to comment
+test("recieves issue_comment.created event, does not applies emergency label, fail to comment", async function () {
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+
+  // mock the request to apply the emergency label
+  const mock = nock("https://api.github.com")
+    .get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+      .reply(200, payloadNonMembershipResponse);
+
+  // mock the request to create the issue comment
+  mock.post("/repos/robandpdx/superbigmono/issues/1/comments",
+    (requestBody) => {
+      assert.equal(requestBody.body, "@robandpdx is not authorized to apply the emergency label.");
+      return true;
+    }
+  ).reply(404);
+  
+  try {
+    await probot.receive(payloadPrComment);
+  } catch (err) {
+    assert.equal(mock.pendingMocks(), []);
+    assert.equal(err.errors.length, 1);
+  }
   assert.equal(mock.pendingMocks(), []);
 });
 
