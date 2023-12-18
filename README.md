@@ -69,6 +69,16 @@ You will need to decide the label that this app looks for, the contents of the i
 - `ISSUE_BODY_FILE`  This is the file containing the body of the issue created
 - `ISSUE_ASSIGNEES`  This is a comma separated list of the issue assignees
 
+Optionally, you can define a team name in the `AUTHORIZED_TEAM` variable. The app will consider members of this team authorized to use this app. The app will add a comment on the PR if an user who is not a member of this team attemps to do any of the following:  
+- Opens a PR with the `TRIGGER_STRING` in the body  
+- Adds a PR comment with the `TRIGGER_STRING` in the body  
+- Adds the `EMERGENCY_LABEL` to a PR  
+
+The comment will read:  
+```
+@username is not authorized to apply the emergency label.
+```
+
 To make the emergency label permanent set `EMERGENCY_LABEL_PERMANENT` to true. Doing this will cause the app to reapply the emergency label if it is removed.
 To trigger the label (and therefore everything configured) set `TRIGGER_STRING` to the value you want the app to look for in PRs and PR comments.
 

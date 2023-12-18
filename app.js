@@ -12,7 +12,10 @@ const emergencyLabel = process.env.EMERGENCY_LABEL || 'emergency';
 module.exports = (app) => {
   //console.log("Yay! The app was loaded!");
   app.on("pull_request.labeled", async (context) => {
-    if (context.payload.label.name == emergencyLabel && context.payload.pull_request.merged == false) {
+    let authorized = await isAuthorized(context.payload.sender.login, context.payload.organization.login, context.octokit)
+    if (context.payload.label.name == emergencyLabel 
+        && context.payload.pull_request.merged == false  
+        && authorized) {
       // emergency label exists and pull request is not merged, so do stuff...
       console.log(`${emergencyLabel} label detected`);
 
@@ -122,11 +125,25 @@ module.exports = (app) => {
       } else {
         return true;
       }
-    }
+    } else if (context.payload.label.name == emergencyLabel 
+      && context.payload.pull_request.merged == false  
+      && ! authorized) {
+        await postUnauthorizedIssueComment(context)
+        // remove emergency label
+        await context.octokit.rest.issues.removeLabel({
+          owner: context.payload.repository.owner.login,
+          repo: context.payload.repository.name,
+          issue_number: context.payload.pull_request.number,
+          name: emergencyLabel
+        })
+      }
   });
 
   app.on("pull_request.unlabeled", async (context) => {
-    if (context.payload.label.name == emergencyLabel && process.env.EMERGENCY_LABEL_PERMANENT == 'true') {
+    if (context.payload.label.name == emergencyLabel 
+        && process.env.EMERGENCY_LABEL_PERMANENT == 'true'
+        && ! context.payload.sender.login.endsWith("[bot]")) {
+
       // emergencyLabel was removed and it should be permanent, so do stuff...
       console.log(`Reaplying ${emergencyLabel} label to PR: ${context.payload.pull_request.html_url}`);
 
@@ -156,7 +173,10 @@ module.exports = (app) => {
   });
 
   app.on("issues.unlabeled", async (context) => {
-    if (context.payload.label.name == emergencyLabel && process.env.EMERGENCY_LABEL_PERMANENT == 'true') {
+    if (context.payload.label.name == emergencyLabel
+        && process.env.EMERGENCY_LABEL_PERMANENT == 'true' 
+        && ! context.payload.sender.login.endsWith("[bot]")) {
+
       // emergencyLabel was removed and it should be permanent, so do stuff...
       console.log(`Reaplying ${emergencyLabel} label to PR: ${context.payload.issue.html_url}`);
 
@@ -186,7 +206,10 @@ module.exports = (app) => {
   });
 
   app.on("pull_request.opened", async (context) => {
-    if (context.payload.pull_request.body.toLocaleLowerCase().includes(process.env.TRIGGER_STRING)) {
+    let authorized = await isAuthorized(context.payload.sender.login, context.payload.organization.login, context.octokit)
+    if (context.payload.pull_request.body.toLocaleLowerCase().includes(process.env.TRIGGER_STRING) 
+        && authorized) {
+
       // Found the trigger string, so add the emergency label to trigger the other stuff...
       let errorsArray = [];
       await context.octokit.rest.issues.addLabels({
@@ -209,11 +232,18 @@ module.exports = (app) => {
       } else {
         return true;
       }
+    } else if (context.payload.pull_request.body.toLocaleLowerCase().includes(process.env.TRIGGER_STRING) 
+    && ! authorized){
+      await postUnauthorizedIssueComment(context)
     }
   });
 
   app.on("issue_comment.created", async (context) => {
-    if (context.payload.issue.pull_request && context.payload.comment.body.toLocaleLowerCase().includes(process.env.TRIGGER_STRING)) {
+    let authorized = await isAuthorized(context.payload.sender.login, context.payload.organization.login, context.octokit)
+    if (context.payload.issue.pull_request 
+        && context.payload.comment.body.toLocaleLowerCase().includes(process.env.TRIGGER_STRING) 
+        && authorized) {
+
       // This is a comment on a PR and we found the trigger string, so add the emergency label to trigger the other stuff...
       let errorsArray = [];
       await context.octokit.rest.issues.addLabels({
@@ -236,6 +266,74 @@ module.exports = (app) => {
       } else {
         return true;
       }
-    }
+    } else if (context.payload.issue.pull_request 
+        && context.payload.comment.body.toLocaleLowerCase().includes(process.env.TRIGGER_STRING) 
+        && ! authorized) {
+          await postUnauthorizedIssueComment(context)
+        }
   });
 };
+
+async function isAuthorized(login, org, octokit) {
+  // check if process.env.AUTHORIZED_TEAM  is defined
+  if (process.env.AUTHORIZED_TEAM == undefined || process.env.AUTHORIZED_TEAM == "") {
+      console.log("No authorized team specified. Skipping authorization check.")
+      return true;
+  }
+  // if login ends with [bot] then it's a bot and we don't need to check
+  if (login.endsWith("[bot]")) {
+      console.log("Bot detected. Skipping authorization check.")
+      return true;
+  }
+  console.log(`Checking if ${login} is a member of ${org}/${process.env.AUTHORIZED_TEAM} team`)
+  try {
+      let membership = await octokit.request(`GET /orgs/${org}/teams/${process.env.AUTHORIZED_TEAM}/memberships/${login}`, {
+          org: org,
+          team_slug: process.env.AUTHORIZED_TEAM,
+          username: login
+      })
+
+      if (membership.data.state == 'active') {
+          console.log( "Membership active")
+          return true;
+      } else {
+          console.log( "Membership not active")
+          return false;
+
+      }
+  } catch (error) {
+      if (error.status == 404) {
+        console.log("Membership not found")
+        return false;
+      } else {
+        console.log(`error: ${error}`);
+        console.log("Error checking membership. Check the ADMIN_OPS_ORG and ACTIONS_APPROVER_TEAM variables.")
+        throw new Error("Error checking membership");
+      }
+  }
+}
+
+async function postUnauthorizedIssueComment(context) {
+  // Comment on github issue that user is not authorized to apply the emergency label
+  let errorsArray = [];
+  let number = context.payload.issue ? context.payload.issue.number : context.payload.pull_request.number
+  let url = context.payload.issue ? context.payload.issue.html_url : context.payload.pull_request.html_url
+  await context.octokit.rest.issues.createComment({
+    owner: context.payload.repository.owner.login,
+    repo: context.payload.repository.name,
+    issue_number: number,
+    body: `@${context.payload.sender.login} is not authorized to apply the emergency label.`
+  }).then(response => {
+    console.log(`Commented on issue: ${url}`);
+  }).catch(error => {
+    console.log(`Error commenting on issue: ${error} to PR: ${url}`);
+    errorsArray.push(error);
+  });
+
+  if (errorsArray.length > 0) {
+    console.log(`Errors: ${errorsArray}`);
+    throw errorsArray;
+  } else {
+    return true;
+  }
+}
