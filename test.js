@@ -29,7 +29,14 @@ const payloadPrLabeled = {
       number: 1,
       url: "https://api.github.com/repos/robandpdx/superbigmono/pulls/1",
       html_url: "https://github.com/robandpdx/superbigmono/pull/1",
-      merged: false
+      merged: false,
+      base: {
+        repo: {
+          allow_merge_commit: true,
+          allow_squash_merge: true,
+          allow_rebase_merge: true
+        }
+      }
     },
     organization: {
       login: "robandpdx",
@@ -60,7 +67,14 @@ const payloadPrLabeledByBot = {
       number: 1,
       url: "https://api.github.com/repos/robandpdx/superbigmono/pulls/1",
       html_url: "https://github.com/robandpdx/superbigmono/pull/1",
-      merged: false
+      merged: false,
+      base: {
+        repo: {
+          allow_merge_commit: true,
+          allow_squash_merge: true,
+          allow_rebase_merge: true
+        }
+      }
     },
     organization: {
       login: "robandpdx",
@@ -285,6 +299,8 @@ test.after.each(() => {
   delete process.env.SLACK_MESSAGE_FILE;
   delete process.env.EMERGENCY_LABEL_PERMANENT;
   delete process.env.AUTHORIZED_TEAM;
+  payloadPrLabeled.payload.pull_request.base.repo.allow_merge_commit = true;
+  payloadPrLabeled.payload.pull_request.base.repo.allow_squash_merge = true;
 });
 
 // This test sends a payload that is not an emergency label
@@ -445,7 +461,56 @@ test("recieves pull_request.labeled event, merge the PR", async function () {
   
   // mock the request to add approval to the pr
   const mock = nock("https://api.github.com")
-    .put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
+    .put("/repos/robandpdx/superbigmono/pulls/1/merge",
+      (requestBody) => {
+        assert.equal(requestBody.merge_method, "merge");
+        return true;
+    }
+  ).reply(200);
+
+  await probot.receive(payloadPrLabeled);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will only merge the PR, using squash merge
+test("recieves pull_request.labeled event, squash merge the PR", async function () {
+  process.env.APPROVE_PR = 'false';
+  process.env.CREATE_ISSUE = 'false';
+  process.env.MERGE_PR = 'true';
+  process.env.SLACK_NOTIFY = 'false';
+  payloadPrLabeled.payload.pull_request.base.repo.allow_merge_commit = false;
+  
+  // mock the request to add approval to the pr
+  const mock = nock("https://api.github.com")
+    .put("/repos/robandpdx/superbigmono/pulls/1/merge",
+      (requestBody) => {
+        assert.equal(requestBody.merge_method, "squash");
+        return true;
+      }
+    ).reply(200);
+    
+
+  await probot.receive(payloadPrLabeled);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will only merge the PR, using rebase merge
+test("recieves pull_request.labeled event, rebase merge the PR", async function () {
+  process.env.APPROVE_PR = 'false';
+  process.env.CREATE_ISSUE = 'false';
+  process.env.MERGE_PR = 'true';
+  process.env.SLACK_NOTIFY = 'false';
+  payloadPrLabeled.payload.pull_request.base.repo.allow_merge_commit = false;
+  payloadPrLabeled.payload.pull_request.base.repo.allow_squash_merge = false;
+  
+  // mock the request to add approval to the pr
+  const mock = nock("https://api.github.com")
+    .put("/repos/robandpdx/superbigmono/pulls/1/merge",
+      (requestBody) => {
+        assert.equal(requestBody.merge_method, "rebase");
+        return true;
+      }
+    ).reply(200);
 
   await probot.receive(payloadPrLabeled);
   assert.equal(mock.pendingMocks(), []);

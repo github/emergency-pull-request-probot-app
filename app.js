@@ -69,11 +69,19 @@ module.exports = (app) => {
       // Merge PR, if configured to do so
       if (process.env.MERGE_PR == 'true') {
         console.log(`Merging PR`);
+        let mergeMethod;
+        if (context.payload.pull_request.base.repo.allow_merge_commit == true) {
+          mergeMethod = 'merge';
+        } else if (context.payload.pull_request.base.repo.allow_squash_merge == true) {
+          mergeMethod = 'squash';
+        } else {
+          mergeMethod = 'rebase';
+        }
         await context.octokit.rest.pulls.merge({
           owner: context.payload.repository.owner.login,
           repo: context.payload.repository.name,
           pull_number: context.payload.pull_request.number,
-          //merge_method: "squash"
+          merge_method: mergeMethod
         }).then(response => {
           console.log(`PR merged`);
         }).catch(error => {
