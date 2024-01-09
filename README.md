@@ -25,9 +25,11 @@ The slack notification can be configured by setting the `SLACK_MESSAGE_FILE`. Th
 ### Create GitHub App
 Create the GH App in your org or repo. Define a client secrent. Generate a private key.
 #### Grant repository permissions
-Set Contents access to `Read & write`
+Set Contents access to `Read & write`  
 Set Issues access to `Read & write`  
 Set Pull Requests access to `Read & write`  
+#### Grant organization permissions
+Set members access to `Read-only`
 #### Subscripe to events
 Check `Issues`  
 Check `Issue comment`  
