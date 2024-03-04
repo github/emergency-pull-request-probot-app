@@ -19,7 +19,7 @@
   "license": "MIT",
   "devDependencies": {
     "mocha": "^10.3.0",
-    "nock": "^13.5.3",
+    "nock": "^13.5.4",
     "nyc": "^15.1.0",
     "smee-client": "^2.0.1",
     "uvu": "^0.5.6"
