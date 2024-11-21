@@ -1,0 +1,25 @@
+name: Review Probot PRs
+on:
+  pull_request:
+    types: [opened, reopened]
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    steps:
+        - name: Post review
+          if: startsWith(github.event.pull_request.title, 'Bump probot') || startsWith(github.event.pull_request.title, 'Bump @probot')
+          uses: actions/github-script@v7.0.1
+          with:
+            script: |
+                const pull_number = context.payload.pull_request.number;
+                const owner = context.repo.owner;
+                const repo = context.repo.repo;
+
+                await github.request(`POST /repos/${owner}/${repo}/pulls/${pull_number}/reviews`, {
+                  owner: owner,
+                  repo: repo,
+                  pull_number: pull_number,
+                  body: '👋🏻🤖 The latest probot uses a newer octokit, which is not compatible with nock.\n\n' +
+                  'The latest version of octokit uses [undici http client](https://github.com/nodejs/undici). Nock does not support undici. More details [here](https://github.com/nock/nock/issues/2183).',
+                  event: 'REQUEST_CHANGES'
+                });
