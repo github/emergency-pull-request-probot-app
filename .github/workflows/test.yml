@@ -1,8 +1,13 @@
 name: Main Tests
+
 on:
   push:
     branches:
       - main
+
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
