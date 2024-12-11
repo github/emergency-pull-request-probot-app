@@ -26,7 +26,7 @@ jobs:
         cache: npm
     - run: npm ci
     - run: npm test
-    - uses: tintef/nyc-reporter-action@0.2.5
+    - uses: tintef/nyc-reporter-action@66a40cea2d02fdb0ac8fa045a7355cbbf9b991a1
       with:
         GITHUB_TOKEN: ${{ github.token }}
         SKIP_COVERAGE_FOLDER: true
