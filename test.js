@@ -305,11 +305,7 @@ test.after.each(() => {
 
 // This test sends a payload that is not an emergency label
 test("recieves pull_request.labeled event, does nothing because not emergency label", async function () {
-  // mock the request to check if the user is a member of the emergency team
-  const mock = nock("https://api.github.com")
-    .get(`/orgs/robandpdx/teams/emergency/memberships/robandpdx?org=robandpdx&team_slug=emergency&username=robandpdx`)
-  .reply(200, payloadMembershipResponse);
-
+  delete process.env.AUTHORIZED_TEAM;
   await probot.receive({
     name: "pull_request",
     id: "1",
@@ -326,7 +322,6 @@ test("recieves pull_request.labeled event, does nothing because not emergency la
       }
     },
   });
-  assert.equal(mock.pendingMocks(), []);
 });
 
 // This test will do all 4 things: approve, create issue, merge, and send slack notification
