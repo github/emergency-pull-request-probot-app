@@ -14,8 +14,6 @@ jobs:
   build:
     if: ${{ github.actor != 'dependabot'}}
     runs-on: ubuntu-latest
-    outputs:
-      release: ${{ steps.prerelease.outputs.release }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Docker Buildx
