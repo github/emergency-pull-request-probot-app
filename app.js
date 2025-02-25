@@ -1,8 +1,4 @@
 const fs = require('fs')
-const auth = {
-  username: process.env.GITHUB_USER,
-  password: process.env.GITHUB_PAT
-}
 
 const emergencyLabel = process.env.EMERGENCY_LABEL || 'emergency';
 
