@@ -55,10 +55,6 @@ Get the following details about your GitHub app:
 
 You will need to base64 encode the private key.
 
-You will also need a user and PAT with admin permissions on the repos in order to merge bypassing checks and required approvals. These will be supplied to the app as the following env vars:
-- `GITHUB_USER`
-- `GITHUB_PAT`
-
 Get the following details about your Slack app:
 - `SLACK_BOT_TOKEN`
 
@@ -129,8 +125,6 @@ docker run \
     -e APP_ID=$APP_ID \
     -e PRIVATE_KEY=$PRIVATE_KEY \
     -e WEBHOOK_SECRET=$WEBHOOK_SECRET \
-    -e GITHUB_PAT=$GITHUB_PAT \
-    -e GITHUB_USER=$GITHUB_USER \
     -e APPROVE_PR=$APPROVE_PR \
     -e CREATE_ISSUE=$CREATE_ISSUE \
     -e MERGE_PR=$MERGE_PR \
