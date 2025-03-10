@@ -11,7 +11,7 @@
   "dependencies": {
     "@probot/adapter-aws-lambda-serverless": "^4.0.3",
     "@slack/web-api": "^7.8.0",
-    "probot": "^13.4.3"
+    "probot": "^13.4.4"
   },
   "repository": "github:emergency-pull-request-probot-app",
   "keywords": [],
