@@ -6,7 +6,7 @@ ownership:
   maintainer: robandpdx
   team: github/ps-amer
   team_slack: services-delivery
-  exec_sponsor: naval-gupta
+  exec_sponsor: scotcar
   repo: https://github.com/github/emergency-pull-request-probot-app
   sev1:
     issue: https://github.com/github/emergency-pull-request-probot-app/issues 
