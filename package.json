@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@probot/adapter-aws-lambda-serverless": "^4.0.3",
-    "@slack/web-api": "^7.9.1",
+    "@slack/web-api": "^7.9.2",
     "probot": "^13.4.4"
   },
   "repository": "github:emergency-pull-request-probot-app",
@@ -18,10 +18,10 @@
   "author": "Rob Anderson (https://github.com/robandpdx)",
   "license": "MIT",
   "devDependencies": {
-    "mocha": "^11.2.2",
-    "nock": "^14.0.4",
+    "mocha": "^11.5.0",
+    "nock": "^14.0.5",
     "nyc": "^17.1.0",
-    "smee-client": "^3.1.1",
+    "smee-client": "^4.2.0",
     "uvu": "^0.5.6"
   },
   "release": {
