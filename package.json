@@ -18,7 +18,7 @@
   "author": "Rob Anderson (https://github.com/robandpdx)",
   "license": "MIT",
   "devDependencies": {
-    "mocha": "^11.5.0",
+    "mocha": "^11.6.0",
     "nock": "^14.0.5",
     "nyc": "^17.1.0",
     "smee-client": "^4.2.1",
