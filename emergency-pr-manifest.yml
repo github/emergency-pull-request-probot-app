@@ -4,9 +4,9 @@ display_information:
   background_color: "#6b6a5d"
   long_description: "This is the notification piece of the Emergency Pull Request GitHub app.\r
 
-    https://github.com/robandpdx/emergency-pull-request\r
+    https://github.com/github/emergency-pull-request-probot-app\r
 
-    https://github.com/robandpdx/emergency-pull-request"
+    https://github.com/github/emergency-pull-request-probot-app"
 features:
   bot_user:
     display_name: Emergency PR
