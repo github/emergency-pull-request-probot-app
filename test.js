@@ -85,6 +85,44 @@ const payloadPrLabeledByBot = {
   },
 }
 
+const payloadPrLabeledByOtherBot = {
+  loadName: "payloadPrLabeled",
+  name: "pull_request",
+  id: "1",
+  payload: {
+    action: "labeled",
+    label: {
+      name: "emergency"
+    },
+    repository: {
+      owner: {
+        login: "robandpdx",
+      },
+      name: "superbigmono",
+      url: "https://api.github.com/repos/robandpdx/superbigmono"
+    },
+    pull_request: {
+      number: 1,
+      url: "https://api.github.com/repos/robandpdx/superbigmono/pulls/1",
+      html_url: "https://github.com/robandpdx/superbigmono/pull/1",
+      merged: false,
+      base: {
+        repo: {
+          allow_merge_commit: true,
+          allow_squash_merge: true,
+          allow_rebase_merge: true
+        }
+      }
+    },
+    organization: {
+      login: "robandpdx",
+    },
+    sender: {
+      login: "dependabot[bot]",
+    }
+  },
+}
+
 const payloadUnlabeled = {
   loadName: "payloadUnlabeled",
   name: "pull_request",
@@ -537,19 +575,90 @@ test("recieves pull_request.labeled event, check team membership, merge the PR",
   assert.equal(mock.pendingMocks(), []);
 });
 
-// This test will merge the PR because label was applied by a bot
+// This test will merge the PR because the label was applied by this app's own bot,
+// which the app self-detects via GET /app.
 test("recieves pull_request.labeled event from a bot, merge the PR", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'true';
   process.env.SLACK_NOTIFY = 'false';
   process.env.AUTHORIZED_TEAM = 'emergency-team'
-  
-  // mock the request to add approval to the pr
+
+  // mock the GitHub App self-introspection used to detect this app's bot login
   const mock = nock("https://api.github.com")
+    .get("/app").reply(200, { slug: "emergency-pr" })
     .put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
 
   await probot.receive(payloadPrLabeledByBot);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test will not merge the PR because the sender is a bot but not this app's
+// own bot. External bots cannot be allowlisted (GitHub teams cannot contain bot
+// identities), so the team-membership check returns 404 and the bot is rejected.
+test("recieves pull_request.labeled event from a non-app bot, do not merge the PR", async function () {
+  process.env.APPROVE_PR = 'false';
+  process.env.CREATE_ISSUE = 'false';
+  process.env.MERGE_PR = 'true';
+  process.env.SLACK_NOTIFY = 'false';
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+
+  const mock = nock("https://api.github.com")
+    // mock self-introspection — the detected bot login differs from the sender
+    .get("/app").reply(200, { slug: "emergency-pr" })
+    // mock the membership check returning 404 — the bot is not on the team
+    .get(`/orgs/robandpdx/teams/emergency-team/memberships/dependabot[bot]?org=robandpdx&team_slug=emergency-team&username=dependabot%5Bbot%5D`)
+      .reply(404);
+
+  // mock the unauthorized comment
+  mock.post("/repos/robandpdx/superbigmono/issues/1/comments",
+    (requestBody) => {
+      assert.equal(requestBody.body, "@dependabot[bot] is not authorized to apply the emergency label.");
+      return true;
+    }
+  ).reply(200);
+
+  // mock the label removal
+  mock.delete("/repos/robandpdx/superbigmono/issues/1/labels/emergency",
+    (requestBody) => {
+      return true;
+    }
+  ).reply(200);
+
+  await probot.receive(payloadPrLabeledByOtherBot);
+  assert.equal(mock.pendingMocks(), []);
+});
+
+// This test confirms that if self-introspection (GET /app) fails, the app fails
+// safe: no bots bypass authorization. The bot then has to pass the team check.
+test("recieves pull_request.labeled event from a bot when self-introspection fails, do not merge the PR", async function () {
+  process.env.APPROVE_PR = 'false';
+  process.env.CREATE_ISSUE = 'false';
+  process.env.MERGE_PR = 'true';
+  process.env.SLACK_NOTIFY = 'false';
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+
+  const mock = nock("https://api.github.com")
+    // self-introspection fails
+    .get("/app").reply(500)
+    // membership check returns 404 — the bot is not on the team
+    .get(`/orgs/robandpdx/teams/emergency-team/memberships/dependabot[bot]?org=robandpdx&team_slug=emergency-team&username=dependabot%5Bbot%5D`)
+      .reply(404);
+
+  mock.post("/repos/robandpdx/superbigmono/issues/1/comments",
+    (requestBody) => {
+      assert.equal(requestBody.body, "@dependabot[bot] is not authorized to apply the emergency label.");
+      return true;
+    }
+  ).reply(200);
+
+  mock.delete("/repos/robandpdx/superbigmono/issues/1/labels/emergency",
+    (requestBody) => {
+      return true;
+    }
+  ).reply(200);
+
+  await probot.receive(payloadPrLabeledByOtherBot);
   assert.equal(mock.pendingMocks(), []);
 });
 
