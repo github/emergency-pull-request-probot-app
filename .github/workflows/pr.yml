@@ -27,6 +27,7 @@ jobs:
     - run: npm ci
     - run: npm test
     - uses: tintef/nyc-reporter-action@66a40cea2d02fdb0ac8fa045a7355cbbf9b991a1
+      if: ${{ !github.event.pull_request.head.repo.fork }}
       with:
         GITHUB_TOKEN: ${{ github.token }}
         SKIP_COVERAGE_FOLDER: true
