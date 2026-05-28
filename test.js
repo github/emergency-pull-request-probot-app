@@ -300,6 +300,9 @@ const payloadNonMembershipResponse = {
   "state": "inactive"
 }
 
+// Ensure EMERGENCY_LABEL is unset at initial require so that
+// `process.env.EMERGENCY_LABEL || 'emergency'` exercises the default-fallback branch.
+delete process.env.EMERGENCY_LABEL;
 const app = require("./app");
 
 /** @type {import('probot').Probot */
@@ -1232,6 +1235,70 @@ test("recieves issue_comment.created event, failes to apply emergency label", as
 test("recieves issue_comment.created event, dont't emergency label", async function () {
   delete process.env.TRIGGER_STRING;
   await probot.receive(payloadPrComment);
+});
+
+// This test exercises the else-if "false" decision branch when the PR body
+// does not contain the trigger string (TRIGGER_STRING is set).
+test("recieves pull_request.opened event, does nothing because trigger string not in body", async function () {
+  await probot.receive({
+    name: "pull_request",
+    id: "1",
+    payload: {
+      action: "opened",
+      pull_request: {
+        number: 1,
+        body: "Just a regular pull request",
+        issue_url: "https://api.github.com/repos/robandpdx/superbigmono/issues/1",
+        html_url: "https://github.com/robandpdx/superbigmono/pull/1",
+      },
+      repository: {
+        owner: { login: "robandpdx" },
+        name: "superbigmono"
+      },
+      organization: { login: "robandpdx" },
+      sender: { login: "robandpdx" }
+    }
+  });
+});
+
+// This test exercises the else-if "false" decision branch when the comment body
+// does not contain the trigger string (TRIGGER_STRING is set).
+test("recieves issue_comment.created event, does nothing because trigger string not in comment", async function () {
+  await probot.receive({
+    name: "issue_comment",
+    id: "1",
+    payload: {
+      action: "created",
+      issue: {
+        url: "https://api.github.com/repos/robandpdx/superbigmono/issues/1",
+        pull_request: {
+          html_url: "https://github.com/robandpdx/superbigmono/pull/1"
+        },
+        number: 1,
+      },
+      comment: {
+        body: "Just a regular comment"
+      },
+      pull_request: {
+        number: 1,
+      },
+      repository: {
+        owner: { login: "robandpdx" },
+        name: "superbigmono"
+      },
+      organization: { login: "robandpdx" },
+      sender: { login: "robandpdx" }
+    }
+  });
+});
+
+// This test exercises the truthy side of `process.env.EMERGENCY_LABEL || 'emergency'`
+// at module top-level by re-requiring app.js with EMERGENCY_LABEL set.
+test("loads app.js with EMERGENCY_LABEL env set", function () {
+  process.env.EMERGENCY_LABEL = 'emergency';
+  delete require.cache[require.resolve("./app")];
+  require("./app");
+  delete require.cache[require.resolve("./app")];
 });
 
 function checkIssueRequest(requestBody) {
