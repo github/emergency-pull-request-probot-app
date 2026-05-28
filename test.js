@@ -346,7 +346,7 @@ test.after.each(() => {
 });
 
 // This test sends a payload that is not an emergency label
-test("recieves pull_request.labeled event, does nothing because not emergency label", async function () {
+test("receives pull_request.labeled event, does nothing because not emergency label", async function () {
   delete process.env.AUTHORIZED_TEAM;
   await probot.receive({
     name: "pull_request",
@@ -367,7 +367,7 @@ test("recieves pull_request.labeled event, does nothing because not emergency la
 });
 
 // This test will do all 4 things: approve, create issue, merge, and send slack notification
-test("recieves pull_request.labeled event, approve, create issue, merge, slack notify", async function () {
+test("receives pull_request.labeled event, approve, create issue, merge, slack notify", async function () {
   process.env.APPROVE_PR = 'true';
   process.env.CREATE_ISSUE = 'true';
   process.env.MERGE_PR = 'true';
@@ -430,7 +430,7 @@ test("recieves pull_request.labeled event, approve, create issue, merge, slack n
 });
 
 // This test will only approve the PR
-test("recieves pull_request.labeled event, approve PR", async function () {
+test("receives pull_request.labeled event, approve PR", async function () {
   process.env.APPROVE_PR = 'true';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'false';
@@ -453,7 +453,7 @@ test("recieves pull_request.labeled event, approve PR", async function () {
 });
 
 // This test will only create an issue
-test("recieves pull_request.labeled event, create issue", async function () {
+test("receives pull_request.labeled event, create issue", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'true';
   process.env.MERGE_PR = 'false';
@@ -474,7 +474,7 @@ test("recieves pull_request.labeled event, create issue", async function () {
 });
 
 // This test will only create an issue without assingees
-test("recieves pull_request.labeled event, create issue no assignees", async function () {
+test("receives pull_request.labeled event, create issue no assignees", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'true';
   process.env.MERGE_PR = 'false';
@@ -496,7 +496,7 @@ test("recieves pull_request.labeled event, create issue no assignees", async fun
 });
 
 // This test will only merge the PR
-test("recieves pull_request.labeled event, merge the PR", async function () {
+test("receives pull_request.labeled event, merge the PR", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'true';
@@ -516,7 +516,7 @@ test("recieves pull_request.labeled event, merge the PR", async function () {
 });
 
 // This test will only merge the PR, using squash merge
-test("recieves pull_request.labeled event, squash merge the PR", async function () {
+test("receives pull_request.labeled event, squash merge the PR", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'true';
@@ -538,7 +538,7 @@ test("recieves pull_request.labeled event, squash merge the PR", async function 
 });
 
 // This test will only merge the PR, using rebase merge
-test("recieves pull_request.labeled event, rebase merge the PR", async function () {
+test("receives pull_request.labeled event, rebase merge the PR", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'true';
@@ -560,7 +560,7 @@ test("recieves pull_request.labeled event, rebase merge the PR", async function 
 });
 
 // This test will merge the PR because the user is a member of the emergency team
-test("recieves pull_request.labeled event, check team membership, merge the PR", async function () {
+test("receives pull_request.labeled event, check team membership, merge the PR", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'true';
@@ -581,7 +581,7 @@ test("recieves pull_request.labeled event, check team membership, merge the PR",
 
 // This test will merge the PR because the label was applied by this app's own bot,
 // which the app self-detects via GET /app.
-test("recieves pull_request.labeled event from a bot, merge the PR", async function () {
+test("receives pull_request.labeled event from a bot, merge the PR", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'true';
@@ -601,7 +601,7 @@ test("recieves pull_request.labeled event from a bot, merge the PR", async funct
 // getAppBotLogin: the first event populates cachedAppBotLogin via GET /app,
 // the second hits the `cachedAppBotLogin !== undefined` early-return branch
 // and must NOT call GET /app again.
-test("recieves pull_request.labeled event from a bot twice, second call uses cached app bot login", async function () {
+test("receives pull_request.labeled event from a bot twice, second call uses cached app bot login", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'true';
@@ -629,7 +629,7 @@ test("recieves pull_request.labeled event from a bot twice, second call uses cac
 // This test will not merge the PR because the sender is a bot but not this app's
 // own bot. External bots cannot be allowlisted (GitHub teams cannot contain bot
 // identities), so the team-membership check returns 404 and the bot is rejected.
-test("recieves pull_request.labeled event from a non-app bot, do not merge the PR", async function () {
+test("receives pull_request.labeled event from a non-app bot, do not merge the PR", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'true';
@@ -664,7 +664,7 @@ test("recieves pull_request.labeled event from a non-app bot, do not merge the P
 
 // This test confirms that if self-introspection (GET /app) fails, the app fails
 // safe: no bots bypass authorization. The bot then has to pass the team check.
-test("recieves pull_request.labeled event from a bot when self-introspection fails, do not merge the PR", async function () {
+test("receives pull_request.labeled event from a bot when self-introspection fails, do not merge the PR", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'true';
@@ -696,7 +696,7 @@ test("recieves pull_request.labeled event from a bot when self-introspection fai
 });
 
 // This test will not merge the PR because the user is not a member of the emergency team
-test("recieves pull_request.labeled event, check non team membership, do not merge the PR", async function () {
+test("receives pull_request.labeled event, check non team membership, do not merge the PR", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'true';
@@ -728,7 +728,7 @@ test("recieves pull_request.labeled event, check non team membership, do not mer
 });
 
 // This test will not merge the PR because non team membership
-test("recieves pull_request.labeled event, non team membership, do not merge the PR", async function () {
+test("receives pull_request.labeled event, non team membership, do not merge the PR", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'true';
@@ -760,7 +760,7 @@ test("recieves pull_request.labeled event, non team membership, do not merge the
 });
 
 // This test will only slack notify
-test("recieves pull_request.labeled event, slack notify", async function () {
+test("receives pull_request.labeled event, slack notify", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'false';
@@ -801,7 +801,7 @@ test("recieves pull_request.labeled event, slack notify", async function () {
 });
 
 // This test will only slack notify (fail)
-test("recieves pull_request.labeled event, slack notify (fail)", async function () {
+test("receives pull_request.labeled event, slack notify (fail)", async function () {
   process.env.APPROVE_PR = 'false';
   process.env.CREATE_ISSUE = 'false';
   process.env.MERGE_PR = 'false';
@@ -830,7 +830,7 @@ test("recieves pull_request.labeled event, slack notify (fail)", async function 
 });
 
 // This test will do 3 things: approve, create issue, merge, but the appoval will fail
-test("recieves pull_request.labeled event, approve (fails), create issue, merge", async function () {
+test("receives pull_request.labeled event, approve (fails), create issue, merge", async function () {
   process.env.APPROVE_PR = 'true';
   process.env.CREATE_ISSUE = 'true';
   process.env.MERGE_PR = 'true';
@@ -867,7 +867,7 @@ test("recieves pull_request.labeled event, approve (fails), create issue, merge"
 });
 
 // This test will do 3 things: approve, create issue, merge, but creating the issue will fail
-test("recieves pull_request.labeled event, approve, create issue (fails), merge", async function () {
+test("receives pull_request.labeled event, approve, create issue (fails), merge", async function () {
   process.env.APPROVE_PR = 'true';
   process.env.CREATE_ISSUE = 'true';
   process.env.MERGE_PR = 'true';
@@ -904,7 +904,7 @@ test("recieves pull_request.labeled event, approve, create issue (fails), merge"
 });
 
 // This test will do 3 things: approve, create issue, merge, but merging the PR will fail
-test("recieves pull_request.labeled event, approve, create issue, merge (fails)", async function () {
+test("receives pull_request.labeled event, approve, create issue, merge (fails)", async function () {
   process.env.APPROVE_PR = 'true';
   process.env.CREATE_ISSUE = 'true';
   process.env.MERGE_PR = 'true';
@@ -941,7 +941,7 @@ test("recieves pull_request.labeled event, approve, create issue, merge (fails)"
 });
 
 // This test will reapply the emergency label to a PR
-test("recieves pull_request.unlabeled event, reapply emergency label", async function () {
+test("receives pull_request.unlabeled event, reapply emergency label", async function () {
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
   // mock the request to reapply the emergency label
   const mock = nock("https://api.github.com")
@@ -958,14 +958,14 @@ test("recieves pull_request.unlabeled event, reapply emergency label", async fun
 });
 
 // This test will not reapply the emergency label to a PR if removed by bot
-test("recieves pull_request.unlabeled event from bot user, do not reapply emergency label", async function () {
+test("receives pull_request.unlabeled event from bot user, do not reapply emergency label", async function () {
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
 
   await probot.receive(payloadUnlabeledByBot);
 });
 
 // This test will fail to reapply the emergency label to a PR
-test("recieves pull_request.unlabeled event, fail to reapply emergency label", async function () {
+test("receives pull_request.unlabeled event, fail to reapply emergency label", async function () {
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
   // mock the request to reapply the emergency label
   const mock = nock("https://api.github.com")
@@ -989,14 +989,14 @@ test("recieves pull_request.unlabeled event, fail to reapply emergency label", a
 });
 
 // This test will not reapply the emergency label to a PR
-test("recieves pull_request.unlabeled event, don't emergency label", async function () {
+test("receives pull_request.unlabeled event, don't emergency label", async function () {
   delete process.env.EMERGENCY_LABEL_PERMANENT;
   process.env.EMERGENCY_LABEL_PERMANENT = 'false';
   await probot.receive(payloadUnlabeled);
 });
 
 // This test will reapply the emergency label to an issue
-test("recieves issue.unlabeled event, reapply emergency label", async function () {
+test("receives issue.unlabeled event, reapply emergency label", async function () {
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
   // mock the request to reapply the emergency label
   const mock = nock("https://api.github.com")
@@ -1013,14 +1013,14 @@ test("recieves issue.unlabeled event, reapply emergency label", async function (
 });
 
 // This test will not reapply the emergency label to an issue if removed by bot
-test("recieves issue.unlabeled event from bot, do not reapply emergency label", async function () {
+test("receives issue.unlabeled event from bot, do not reapply emergency label", async function () {
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
 
   await probot.receive(payloadIssueUnlabeledByBot);
 });
 
 // This test will fail to reapply the emergency label to an issue
-test("recieves issue.unlabeled event, fail to reapply emergency label", async function () {
+test("receives issue.unlabeled event, fail to reapply emergency label", async function () {
   process.env.EMERGENCY_LABEL_PERMANENT = 'true';
   // mock the request to reapply the emergency label
   const mock = nock("https://api.github.com")
@@ -1044,14 +1044,14 @@ test("recieves issue.unlabeled event, fail to reapply emergency label", async fu
 });
 
 // This test will not reapply the emergency label to an issue
-test("recieves pull_request.unlabeled event, dont't emergency label", async function () {
+test("receives pull_request.unlabeled event, dont't emergency label", async function () {
   delete process.env.EMERGENCY_LABEL_PERMANENT;
   process.env.EMERGENCY_LABEL_PERMANENT = 'false';
   await probot.receive(payloadIssueUnlabeled);
 });
 
 // This test will apply the emergency label based on the PR contents
-test("recieves pull_request.opened event, applies emergency label", async function () {
+test("receives pull_request.opened event, applies emergency label", async function () {
   // mock the request to apply the emergency label
   const mock = nock("https://api.github.com")
     .post("/repos/robandpdx/superbigmono/issues/1/labels",
@@ -1067,7 +1067,7 @@ test("recieves pull_request.opened event, applies emergency label", async functi
 });
 
 // This test will apply the emergency label based on the PR contents checking team membership
-test("recieves pull_request.opened event, applies emergency label checking team membership", async function () {
+test("receives pull_request.opened event, applies emergency label checking team membership", async function () {
   process.env.AUTHORIZED_TEAM = 'emergency-team'
 
   // mock the request to apply the emergency label
@@ -1089,7 +1089,7 @@ test("recieves pull_request.opened event, applies emergency label checking team 
 });
 
 // This test will not apply the emergency label due to non team membership
-test("recieves pull_request.opened event, does not apply emergency label due to non team membership", async function () {
+test("receives pull_request.opened event, does not apply emergency label due to non team membership", async function () {
   process.env.AUTHORIZED_TEAM = 'emergency-team'
 
   // mock the request to apply the emergency label
@@ -1110,7 +1110,7 @@ test("recieves pull_request.opened event, does not apply emergency label due to 
 });
 
 // This test will fail to apply the emergency label based on the PR contents
-test("recieves pull_request.opened event, fails to apply emergency label", async function () {
+test("receives pull_request.opened event, fails to apply emergency label", async function () {
   // mock the request to apply the emergency label
   const mock = nock("https://api.github.com")
     .post("/repos/robandpdx/superbigmono/issues/1/labels",
@@ -1132,13 +1132,13 @@ test("recieves pull_request.opened event, fails to apply emergency label", async
 });
 
 // This test will not reapply the emergency label because the TRIGGER_STRING is not found
-test("recieves pull_request.unlabeled event, dont't emergency label", async function () {
+test("receives pull_request.unlabeled event, dont't emergency label", async function () {
   delete process.env.TRIGGER_STRING;
   await probot.receive(payloadPrOpened);
 });
 
 // This test will apply the emergency label based on the contents of a comment on the PR
-test("recieves issue_comment.created event, applies emergency label", async function () {
+test("receives issue_comment.created event, applies emergency label", async function () {
   // mock the request to apply the emergency label
   const mock = nock("https://api.github.com")
     .post("/repos/robandpdx/superbigmono/issues/1/labels",
@@ -1154,7 +1154,7 @@ test("recieves issue_comment.created event, applies emergency label", async func
 });
 
 // This test will apply the emergency label based on the contents of a comment on the PR, checking team membership
-test("recieves issue_comment.created event, applies emergency label", async function () {
+test("receives issue_comment.created event, applies emergency label", async function () {
   process.env.AUTHORIZED_TEAM = 'emergency-team'
 
   // mock the request to apply the emergency label
@@ -1176,7 +1176,7 @@ test("recieves issue_comment.created event, applies emergency label", async func
 });
 
 // This test will not apply the emergency label due to non team membership and comment
-test("recieves issue_comment.created event, does not apply emergency label due to non membership", async function () {
+test("receives issue_comment.created event, does not apply emergency label due to non membership", async function () {
   process.env.AUTHORIZED_TEAM = 'emergency-team'
 
   // mock the request to apply the emergency label
@@ -1197,7 +1197,7 @@ test("recieves issue_comment.created event, does not apply emergency label due t
 });
 
 // This test will not apply the emergency label due failed membership check
-test("recieves issue_comment.created event, does not apply emergency label due to failed membership check", async function () {
+test("receives issue_comment.created event, does not apply emergency label due to failed membership check", async function () {
   process.env.AUTHORIZED_TEAM = 'emergency-team'
 
   // mock the request to apply the emergency label
@@ -1214,7 +1214,7 @@ test("recieves issue_comment.created event, does not apply emergency label due t
 });
 
 // This test will not apply the emergency label due to non team membership, fail to comment
-test("recieves issue_comment.created event, does not applies emergency label, fail to comment", async function () {
+test("receives issue_comment.created event, does not applies emergency label, fail to comment", async function () {
   process.env.AUTHORIZED_TEAM = 'emergency-team'
 
   // mock the request to apply the emergency label
@@ -1240,7 +1240,7 @@ test("recieves issue_comment.created event, does not applies emergency label, fa
 });
 
 // This test will fail to apply the emergency label based on the contents of a comment on the PR
-test("recieves issue_comment.created event, failes to apply emergency label", async function () {
+test("receives issue_comment.created event, failes to apply emergency label", async function () {
   // mock the request to apply the emergency label
   const mock = nock("https://api.github.com")
     .post("/repos/robandpdx/superbigmono/issues/1/labels",
@@ -1262,14 +1262,14 @@ test("recieves issue_comment.created event, failes to apply emergency label", as
 });
 
 // This test will not reapply the emergency label because the TRIGGER_STRING is not found
-test("recieves issue_comment.created event, dont't emergency label", async function () {
+test("receives issue_comment.created event, dont't emergency label", async function () {
   delete process.env.TRIGGER_STRING;
   await probot.receive(payloadPrComment);
 });
 
 // This test exercises the else-if "false" decision branch when the PR body
 // does not contain the trigger string (TRIGGER_STRING is set).
-test("recieves pull_request.opened event, does nothing because trigger string not in body", async function () {
+test("receives pull_request.opened event, does nothing because trigger string not in body", async function () {
   await probot.receive({
     name: "pull_request",
     id: "1",
@@ -1293,7 +1293,7 @@ test("recieves pull_request.opened event, does nothing because trigger string no
 
 // This test exercises the else-if "false" decision branch when the comment body
 // does not contain the trigger string (TRIGGER_STRING is set).
-test("recieves issue_comment.created event, does nothing because trigger string not in comment", async function () {
+test("receives issue_comment.created event, does nothing because trigger string not in comment", async function () {
   await probot.receive({
     name: "issue_comment",
     id: "1",
