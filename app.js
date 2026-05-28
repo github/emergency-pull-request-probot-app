@@ -21,7 +21,6 @@ module.exports = (app) => {
       console.log(`Detected app bot login: ${cachedAppBotLogin}`);
     } catch (e) {
       console.log(`Could not detect app bot login (${e.message}). The self-trigger label flow will be blocked by AUTHORIZED_TEAM.`);
-      cachedAppBotLogin = "";
     }
     return cachedAppBotLogin;
   }
