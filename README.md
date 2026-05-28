@@ -77,6 +77,8 @@ The comment will read:
 @username is not authorized to apply the emergency label.
 ```
 
+This app's own bot login is automatically allowlisted (the app detects it via the GitHub App self-introspection API). This keeps the trigger flow working: when the app applies the emergency label, the subsequent `pull_request.labeled` event re-enters with the app's bot as the sender, and the authorization check accepts it. Other bots in the org (Dependabot, Renovate, etc.) are *not* allowlisted and cannot be added to `AUTHORIZED_TEAM` (GitHub teams contain user accounts only, not bot identities). If you need a specific external bot to be authorized, that would require a separate allowlist mechanism — none exists today.
+
 To make the emergency label permanent set `EMERGENCY_LABEL_PERMANENT` to true. Doing this will cause the app to reapply the emergency label if it is removed.
 To trigger the label (and therefore everything configured) set `TRIGGER_STRING` to the value you want the app to look for in PRs and PR comments.
 

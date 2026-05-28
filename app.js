@@ -7,8 +7,26 @@ const emergencyLabel = process.env.EMERGENCY_LABEL || 'emergency';
  */
 module.exports = (app) => {
   //console.log("Yay! The app was loaded!");
+
+  // Resolve this app's own bot login once per process via GitHub App self-introspection.
+  // Used by isAuthorized to allowlist exactly the app's own bot (which legitimately
+  // re-enters its own labeled event) while keeping every other bot subject to AUTHORIZED_TEAM.
+  let cachedAppBotLogin;
+  async function getAppBotLogin() {
+    if (cachedAppBotLogin !== undefined) return cachedAppBotLogin;
+    try {
+      const appOctokit = await app.auth();
+      const { data } = await appOctokit.rest.apps.getAuthenticated();
+      cachedAppBotLogin = `${data.slug}[bot]`;
+      console.log(`Detected app bot login: ${cachedAppBotLogin}`);
+    } catch (e) {
+      console.log(`Could not detect app bot login (${e.message}). The self-trigger label flow will be blocked by AUTHORIZED_TEAM.`);
+    }
+    return cachedAppBotLogin;
+  }
+
   app.on("pull_request.labeled", async (context) => {
-    let authorized = await isAuthorized(context.payload.sender.login, context.payload.organization.login, context.octokit)
+    let authorized = await isAuthorized(context.payload.sender.login, context.payload.organization.login, context.octokit, getAppBotLogin)
     if (context.payload.label.name == emergencyLabel 
         && context.payload.pull_request.merged == false  
         && authorized) {
@@ -214,7 +232,7 @@ module.exports = (app) => {
       console.log("No trigger string specified. Skipping auto-label check.");
       return;
     }
-    let authorized = await isAuthorized(context.payload.sender.login, context.payload.organization.login, context.octokit)
+    let authorized = await isAuthorized(context.payload.sender.login, context.payload.organization.login, context.octokit, getAppBotLogin)
     if (context.payload.pull_request.body.toLocaleLowerCase().includes(process.env.TRIGGER_STRING)
         && authorized) {
 
@@ -251,7 +269,7 @@ module.exports = (app) => {
       console.log("No trigger string specified. Skipping auto-label check.");
       return;
     }
-    let authorized = await isAuthorized(context.payload.sender.login, context.payload.organization.login, context.octokit)
+    let authorized = await isAuthorized(context.payload.sender.login, context.payload.organization.login, context.octokit, getAppBotLogin)
     if (context.payload.issue.pull_request
         && context.payload.comment.body.toLocaleLowerCase().includes(process.env.TRIGGER_STRING)
         && authorized) {
@@ -286,16 +304,20 @@ module.exports = (app) => {
   });
 };
 
-async function isAuthorized(login, org, octokit) {
+async function isAuthorized(login, org, octokit, getAppBotLogin) {
   // check if process.env.AUTHORIZED_TEAM  is defined
   if (process.env.AUTHORIZED_TEAM == undefined || process.env.AUTHORIZED_TEAM == "") {
       console.log("No authorized team specified. Skipping authorization check.")
       return true;
   }
-  // if login ends with [bot] then it's a bot and we don't need to check
+  // Only this app's own bot (which re-enters its own labeled event after applying
+  // the emergency label) may bypass. Other bots fall through to the team check.
   if (login.endsWith("[bot]")) {
-      console.log("Bot detected. Skipping authorization check.")
-      return true;
+      const appBotLogin = await getAppBotLogin();
+      if (appBotLogin && login === appBotLogin) {
+          console.log(`App bot ${login} detected. Skipping authorization check.`)
+          return true;
+      }
   }
   console.log(`Checking if ${login} is a member of ${org}/${process.env.AUTHORIZED_TEAM} team`)
   try {
