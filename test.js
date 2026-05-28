@@ -328,6 +328,11 @@ test.before.each(() => {
     Octokit: ProbotOctokit.defaults({
       throttle: { enabled: false },
       retry: { enabled: false },
+      request: {
+        headers: {
+          "X-GitHub-Api-Version": "2026-03-10",
+        },
+      },
     }),
   });
   probot.load(app);
