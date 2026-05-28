@@ -300,6 +300,10 @@ const payloadNonMembershipResponse = {
   "state": "inactive"
 }
 
+// Unset EMERGENCY_LABEL before requiring ./app so the module-level
+// `process.env.EMERGENCY_LABEL || 'emergency'` fallback branch is exercised.
+// All tests use the literal 'emergency' value anyway, so behavior is unchanged.
+delete process.env.EMERGENCY_LABEL;
 const app = require("./app");
 
 /** @type {import('probot').Probot */
@@ -591,6 +595,35 @@ test("recieves pull_request.labeled event from a bot, merge the PR", async funct
 
   await probot.receive(payloadPrLabeledByBot);
   assert.equal(mock.pendingMocks(), []);
+});
+
+// Two bot-triggered events in the same test exercise the cached path of
+// getAppBotLogin: the first event populates cachedAppBotLogin via GET /app,
+// the second hits the `cachedAppBotLogin !== undefined` early-return branch
+// and must NOT call GET /app again.
+test("recieves pull_request.labeled event from a bot twice, second call uses cached app bot login", async function () {
+  process.env.APPROVE_PR = 'false';
+  process.env.CREATE_ISSUE = 'false';
+  process.env.MERGE_PR = 'true';
+  process.env.SLACK_NOTIFY = 'false';
+  process.env.AUTHORIZED_TEAM = 'emergency-team'
+
+  // First event: self-introspection happens once and PR is merged.
+  const mock = nock("https://api.github.com")
+    .get("/app").reply(200, { slug: "emergency-pr" })
+    .put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
+
+  await probot.receive(payloadPrLabeledByBot);
+  assert.equal(mock.pendingMocks(), []);
+
+  // Second event: cachedAppBotLogin is already set, so GET /app must NOT be
+  // called. Only the merge mock is registered; if the code re-introspects,
+  // nock will throw "Nock: No match for request" on GET /app.
+  const mock2 = nock("https://api.github.com")
+    .put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
+
+  await probot.receive(payloadPrLabeledByBot);
+  assert.equal(mock2.pendingMocks(), []);
 });
 
 // This test will not merge the PR because the sender is a bot but not this app's
