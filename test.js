@@ -1,7 +1,7 @@
 const { suite } = require("uvu");
 const assert = require("uvu/assert");
 
-const nock = require("nock");
+const nock = require("nock").default;
 nock.disableNetConnect();
 
 const {
@@ -339,6 +339,7 @@ test.before.each(() => {
 });
 
 test.after.each(() => {
+  nock.cleanAll();
   delete process.env.APPROVE_PR;
   delete process.env.CREATE_ISSUE;
   delete process.env.MERGE_PR;
@@ -577,7 +578,8 @@ test("receives pull_request.labeled event, check team membership, merge the PR",
     .put("/repos/robandpdx/superbigmono/pulls/1/merge").reply(200);
 
   // mock the request to check if the user is a member of the emergency team
-  mock.get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+  mock.get("/orgs/robandpdx/teams/emergency-team/memberships/robandpdx")
+    .query({ org: "robandpdx", team_slug: "emergency-team", username: "robandpdx" })
   .reply(200, payloadMembershipResponse);
 
   await probot.receive(payloadPrLabeled);
@@ -645,7 +647,8 @@ test("receives pull_request.labeled event from a non-app bot, do not merge the P
     // mock self-introspection — the detected bot login differs from the sender
     .get("/app").reply(200, { slug: "emergency-pr" })
     // mock the membership check returning 404 — the bot is not on the team
-    .get(`/orgs/robandpdx/teams/emergency-team/memberships/dependabot[bot]?org=robandpdx&team_slug=emergency-team&username=dependabot%5Bbot%5D`)
+    .get("/orgs/robandpdx/teams/emergency-team/memberships/dependabot[bot]")
+    .query({ org: "robandpdx", team_slug: "emergency-team", username: "dependabot[bot]" })
       .reply(404);
 
   // mock the unauthorized comment
@@ -680,7 +683,8 @@ test("receives pull_request.labeled event from a bot when self-introspection fai
     // self-introspection fails
     .get("/app").reply(500)
     // membership check returns 404 — the bot is not on the team
-    .get(`/orgs/robandpdx/teams/emergency-team/memberships/dependabot[bot]?org=robandpdx&team_slug=emergency-team&username=dependabot%5Bbot%5D`)
+    .get("/orgs/robandpdx/teams/emergency-team/memberships/dependabot[bot]")
+    .query({ org: "robandpdx", team_slug: "emergency-team", username: "dependabot[bot]" })
       .reply(404);
 
   mock.post("/repos/robandpdx/superbigmono/issues/1/comments",
@@ -710,7 +714,8 @@ test("receives pull_request.labeled event, check non team membership, do not mer
   
   // mock the request to check if the user is a member of the emergency team
   const mock = nock("https://api.github.com")
-    .get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+    .get("/orgs/robandpdx/teams/emergency-team/memberships/robandpdx")
+    .query({ org: "robandpdx", team_slug: "emergency-team", username: "robandpdx" })
       .reply(200, payloadNonMembershipResponse);
 
   // mock the request to create the issue comment
@@ -742,7 +747,8 @@ test("receives pull_request.labeled event, non team membership, do not merge the
   
   // mock the request to check if the user is a member of the emergency team
   const mock = nock("https://api.github.com")
-    .get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+    .get("/orgs/robandpdx/teams/emergency-team/memberships/robandpdx")
+    .query({ org: "robandpdx", team_slug: "emergency-team", username: "robandpdx" })
       .reply(404);
 
   // mock the request to create the issue comment
@@ -1079,6 +1085,7 @@ test("receives pull_request.opened event, applies emergency label checking team 
   const mock = nock("https://api.github.com")
     .post("/repos/robandpdx/superbigmono/issues/1/labels",
       (requestBody) => {
+        if (!requestBody?.labels) return false;
         assert.equal(requestBody.labels[0], "emergency");
         return true;
       }
@@ -1086,7 +1093,8 @@ test("receives pull_request.opened event, applies emergency label checking team 
     .reply(200);
 
   // mock the request to check if the user is a member of the emergency team
-  mock.get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+  mock.get("/orgs/robandpdx/teams/emergency-team/memberships/robandpdx")
+    .query({ org: "robandpdx", team_slug: "emergency-team", username: "robandpdx" })
   .reply(200, payloadMembershipResponse);
 
   await probot.receive(payloadPrOpened);
@@ -1099,7 +1107,8 @@ test("receives pull_request.opened event, does not apply emergency label due to 
 
   // mock the request to apply the emergency label
   const mock = nock("https://api.github.com")
-    .get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+    .get("/orgs/robandpdx/teams/emergency-team/memberships/robandpdx")
+    .query({ org: "robandpdx", team_slug: "emergency-team", username: "robandpdx" })
       .reply(200, payloadNonMembershipResponse);
 
   // mock the request to create the issue comment
@@ -1166,6 +1175,7 @@ test("receives issue_comment.created event, applies emergency label", async func
   const mock = nock("https://api.github.com")
     .post("/repos/robandpdx/superbigmono/issues/1/labels",
       (requestBody) => {
+        if (!requestBody?.labels) return false;
         assert.equal(requestBody.labels[0], "emergency");
         return true;
       }
@@ -1173,7 +1183,8 @@ test("receives issue_comment.created event, applies emergency label", async func
     .reply(200);
 
   // mock the request to check if the user is a member of the emergency team
-  mock.get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+  mock.get("/orgs/robandpdx/teams/emergency-team/memberships/robandpdx")
+    .query({ org: "robandpdx", team_slug: "emergency-team", username: "robandpdx" })
   .reply(200, payloadMembershipResponse);
 
   await probot.receive(payloadPrComment);
@@ -1186,7 +1197,8 @@ test("receives issue_comment.created event, does not apply emergency label due t
 
   // mock the request to apply the emergency label
   const mock = nock("https://api.github.com")
-    .get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+    .get("/orgs/robandpdx/teams/emergency-team/memberships/robandpdx")
+    .query({ org: "robandpdx", team_slug: "emergency-team", username: "robandpdx" })
       .reply(200, payloadNonMembershipResponse);
 
   // mock the request to create the issue comment
@@ -1207,7 +1219,8 @@ test("receives issue_comment.created event, does not apply emergency label due t
 
   // mock the request to apply the emergency label
   const mock = nock("https://api.github.com")
-    .get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+    .get("/orgs/robandpdx/teams/emergency-team/memberships/robandpdx")
+    .query({ org: "robandpdx", team_slug: "emergency-team", username: "robandpdx" })
       .reply(500);
 
   try {
@@ -1224,7 +1237,8 @@ test("receives issue_comment.created event, does not applies emergency label, fa
 
   // mock the request to apply the emergency label
   const mock = nock("https://api.github.com")
-    .get(`/orgs/robandpdx/teams/emergency-team/memberships/robandpdx?org=robandpdx&team_slug=emergency-team&username=robandpdx`)
+    .get("/orgs/robandpdx/teams/emergency-team/memberships/robandpdx")
+    .query({ org: "robandpdx", team_slug: "emergency-team", username: "robandpdx" })
       .reply(200, payloadNonMembershipResponse);
 
   // mock the request to create the issue comment
