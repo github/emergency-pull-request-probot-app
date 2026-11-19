@@ -108,6 +108,8 @@ Start the server
 npm start
 ```
 
+Local startup uses the Probot runner provided by the Lambda adapter.
+
 Follow the instructions to register a new GitHub app.
 
 ## Docker
