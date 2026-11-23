@@ -5,6 +5,7 @@ const {
 } = require("@probot/adapter-aws-lambda-serverless");
 
 const appFn = require("./");
+const { loadProbotEnv } = require("./credentials");
 
 const Octokit = ProbotOctokit.defaults({
   userAgent: "emergency-pull-request-probot-app",
@@ -15,6 +16,19 @@ const Octokit = ProbotOctokit.defaults({
   },
 });
 
-module.exports.webhooks = createLambdaFunction(appFn, {
-  probot: createProbot({ overrides: { Octokit } }),
-});
+let lambdaFunction;
+
+module.exports.webhooks = async (event, context) => {
+  if (!lambdaFunction) {
+    lambdaFunction = loadProbotEnv()
+      .then((env) => createLambdaFunction(appFn, {
+        probot: createProbot({ env, overrides: { Octokit } }),
+      }))
+      .catch((error) => {
+        lambdaFunction = undefined;
+        throw error;
+      });
+  }
+
+  return (await lambdaFunction)(event, context);
+};
