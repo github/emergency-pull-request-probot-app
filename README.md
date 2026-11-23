@@ -55,6 +55,54 @@ Get the following details about your GitHub app:
 
 You will need to base64 encode the private key.
 
+### GitHub App credentials in AWS Secrets Manager
+
+Create and manage a secret separately from this stack, in the same AWS account and
+region as the Lambda function. Use the default Secrets Manager encryption key
+(`aws/secretsmanager`) and store a plaintext JSON object with these string fields:
+
+```json
+{
+  "APP_ID": "123456",
+  "WEBHOOK_SECRET": "<your webhook secret>",
+  "PRIVATE_KEY": "<your base64-encoded private key>"
+}
+```
+
+The app also accepts PEM private keys, including escaped newlines, as it does for
+local environment variables. Do not commit the secret contents to this repository.
+The stack neither creates nor deletes this externally managed secret.
+
+During `sam deploy --guided`, provide the secret's full ARN for
+`githubAppSecretArn`. Lambda receives only `GITHUB_APP_SECRET_ARN`, not the three
+credential values. Its execution role can call `secretsmanager:GetSecretValue`
+only for that secret. A secret encrypted with a customer-managed KMS key also
+requires `kms:Decrypt` on that key in the execution role and permission in the key
+policy; this is not included in the template.
+
+Credential resolution is the same for Lambda and local startup:
+
+1. Use each non-empty `APP_ID`, `WEBHOOK_SECRET`, and `PRIVATE_KEY` environment
+   variable when provided.
+2. If any are missing and `GITHUB_APP_SECRET_ARN` is set, fetch the secret once and
+   fill only the missing values. If all three are present, no AWS request is made.
+3. If no secret ARN is set, preserve Probot's existing environment-based startup
+   and local GitHub App registration flow.
+
+AWS lookup failures, invalid JSON, and missing or invalid required secret fields
+fail startup/invocation rather than falling back silently. Secret values are not
+written to `process.env`. Lambda caches the initialized app across warm
+invocations; after rotating credentials, recycle the Lambda execution
+environments (for example, deploy a new function version) to load the new values.
+
+When updating an existing deployment, remove the old `githubAppId`,
+`githubWebhookSecret`, and `githubPrivateKey` parameter overrides from your local
+`samconfig.toml` and replace them with `githubAppSecretArn`. Remove any copies of
+the old values from local deployment configuration and rotate credentials if they
+were previously exposed.
+
+### Other deployment settings
+
 Get the following details about your Slack app:
 - `SLACK_BOT_TOKEN`
 
@@ -86,7 +134,8 @@ To trigger the label (and therefore everything configured) set `TRIGGER_STRING` 
 1. set your aws profile by running `export AWS_PROFILE=<profile>`
 1. run `sam build`
 1. run `sam deploy --guided`
-You will be prompted for inputs names similar to the environment variables above. 
+You will be prompted for the GitHub App secret ARN and the other configuration
+values above. Do not pass GitHub App credential values as SAM parameters.
 
 Subsequent deploys to the same stack to the default environment...
 1. run `sam build`
@@ -101,6 +150,11 @@ npm install
 ```
 
 Copy .env-sample to .env and fill in the environment variables as needed. See above.
+Keep `APP_ID`, `WEBHOOK_SECRET`, and `PRIVATE_KEY` in `.env` for normal local
+development; AWS credentials are not required. To use Secrets Manager locally
+instead, leave the credentials you want to load empty, set `GITHUB_APP_SECRET_ARN`
+and `AWS_REGION`, and configure an AWS profile or other SDK-supported credentials
+with permission to read the secret.
 
 Start the server
 

@@ -3,14 +3,8 @@ Transform: AWS::Serverless-2016-10-31
 Description: Serverless GitHub app
 
 Parameters:
-  githubAppId:
-    Description: The App ID of your GitHub app
-    Type: String
-  githubWebhookSecret:
-    Description: The webhook secret of your GitHub app
-    Type: String
-  githubPrivateKey:
-    Description: The base64 encoded private key of your GitHub app
+  githubAppSecretArn:
+    Description: ARN of an existing Secrets Manager JSON secret containing APP_ID, WEBHOOK_SECRET, and PRIVATE_KEY
     Type: String
   emergencyLabel:
     Description: The label to use for emergency issues
@@ -90,14 +84,17 @@ Resources:
       Runtime: nodejs24.x
       MemorySize: 256
       Timeout: 20
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref githubAppSecretArn
       Events:
         ApiEvent:
           Type: HttpApi
       Environment:
         Variables:
-          APP_ID: !Ref githubAppId
-          WEBHOOK_SECRET: !Ref githubWebhookSecret
-          PRIVATE_KEY: !Ref githubPrivateKey
+          GITHUB_APP_SECRET_ARN: !Ref githubAppSecretArn
           EMERGENCY_LABEL: !Ref emergencyLabel
           ISSUE_TITLE: !Ref issueTitle
           ISSUE_BODY_FILE: !Ref issueBodyFile

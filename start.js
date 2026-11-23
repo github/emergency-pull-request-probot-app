@@ -1,3 +1,12 @@
 const { run } = require("@probot/adapter-aws-lambda-serverless");
+const { config } = require("dotenv");
+const { loadProbotEnv } = require("./credentials");
 
-run(process.argv);
+config({ quiet: true });
+
+loadProbotEnv()
+  .then((env) => run(process.argv, { env }))
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
